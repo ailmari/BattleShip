@@ -11,7 +11,7 @@ Programmable Web Project course work by:
 @author: niko
 @author: timo
 
-Basen on code by:
+Based on course exercises code by:
 
 @author: ivan
 @author: mika oja
@@ -73,6 +73,66 @@ class Engine(object):
             #THIS REMOVES THE DATABASE STRUCTURE
             os.remove(self.db_path)
 
+    def clear(self):
+        '''
+        Purge the database removing all records from the tables. However,
+        it keeps the database schema (meaning the table structure)
+
+        '''
+        keys_on = 'PRAGMA foreign_keys = ON'
+        #THIS KEEPS THE SCHEMA AND REMOVE VALUES
+        con = sqlite3.connect(self.db_path)
+        #Activate foreing keys support
+        cur = con.cursor()
+        cur.execute(keys_on)
+        with con:
+            cur = con.cursor()
+            cur.execute("DELETE FROM messages")
+            cur.execute("DELETE FROM users")
+            #NOTE since we have ON DELETE CASCADE BOTH IN users_profile AND
+            #friends, WE DO NOT HAVE TO WORRY TO CLEAR THOSE TABLES.
+
+    #METHODS TO CREATE AND POPULATE A DATABASE USING DIFFERENT SCRIPTS
+    def create_tables(self, schema=None):
+        '''
+        Create programmatically the tables from a schema file.
+
+        :param schema: path to the .sql schema file. If this parmeter is
+            None, then *db/battleship_schema_dump.sql* is utilized.
+
+        '''
+        con = sqlite3.connect(self.db_path)
+        if schema is None:
+            schema = DEFAULT_SCHEMA
+        try:
+            with open(schema, encoding="utf-8") as f:
+                sql = f.read()
+                cur = con.cursor()
+                cur.executescript(sql)
+        finally:
+            con.close()
+
+    def populate_tables(self, dump=None):
+        '''
+        Populate programmatically the tables from a dump file.
+
+        :param dump:  path to the .sql dump file. If this parmeter is
+            None, then *db/battleship_data_dump.sql* is utilized.
+
+        '''
+        keys_on = 'PRAGMA foreign_keys = ON'
+        con = sqlite3.connect(self.db_path)
+        #Activate foreing keys support
+        cur = con.cursor()
+        cur.execute(keys_on)
+        #Populate database from dump
+        if dump is None:
+            dump = DEFAULT_DATA_DUMP
+        with open (dump, encoding="utf-8") as f:
+            sql = f.read()
+            cur = con.cursor()
+            cur.executescript(sql)
+
     #METHODS TO CREATE THE TABLES PROGRAMMATICALLY WITHOUT USING SQL SCRIPT
     def create_games_table(self):
         '''
@@ -100,6 +160,34 @@ class Engine(object):
                 print("Error %s:" % excp.args[0])
                 return False
         return True
+
+    def create_players_table(self):
+        '''
+        Create the table ``players`` programmatically, without using .sql file.
+
+        Print an error message in the console if it could not be created.
+
+        :return: ``True`` if the table was successfully created or ``False``
+            otherwise.
+
+        '''
+        keys_on = 'PRAGMA foreign_keys = ON'
+        stmnt = 'CREATE TABLE players(players_id CHAR PRIMARY KEY)'
+        #Connects to the database. Gets a connection object
+        con = sqlite3.connect(self.db_path)
+        with con:
+            #Get the cursor object.
+            #It allows to execute SQL code and traverse the result set
+            cur = con.cursor()
+            try:
+                cur.execute(keys_on)
+                #execute the statement
+                cur.execute(stmnt)
+            except sqlite3.Error as excp:
+                print("Error %s:" % excp.args[0])
+                return False
+        return True
+
 
 class Connection(object):
     '''
