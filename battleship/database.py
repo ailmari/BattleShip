@@ -172,7 +172,7 @@ class Engine(object):
 
         '''
         keys_on = 'PRAGMA foreign_keys = ON'
-        stmnt = 'CREATE TABLE players(players_id CHAR PRIMARY KEY)'
+        stmnt = 'CREATE TABLE players(player_id CHAR PRIMARY KEY)'
         #Connects to the database. Gets a connection object
         con = sqlite3.connect(self.db_path)
         with con:

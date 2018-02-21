@@ -1,0 +1,10 @@
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE IF NOT EXISTS games(
+  game_id INTEGER PRIMARY KEY,
+  start DATE);
+CREATE TABLE IF NOT EXISTS players(
+  player_id CHAR PRIMARY KEY);
+
+COMMIT;
+PRAGMA foreign_keys=ON;
