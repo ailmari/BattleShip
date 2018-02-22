@@ -132,59 +132,6 @@ class Engine(object):
             cur = con.cursor()
             cur.executescript(sql)
 
-    # METHODS TO CREATE THE TABLES PROGRAMMATICALLY WITHOUT USING SQL SCRIPT
-    def create_games_table(self):
-        '''
-        Create the table ``messages`` programmatically, without using .sql file.
-
-        Print an error message in the console if it could not be created.
-
-        :return: ``True`` if the table was successfully created or ``False``
-            otherwise.
-        '''
-        keys_on = 'PRAGMA foreign_keys = ON'
-        stmnt = 'CREATE TABLE games(game_id INTEGER PRIMARY KEY, \
-                    start DATE)'
-        con = sqlite3.connect(self.db_path)
-        with con:
-            # Get the cursor object.
-            # It allows to execute SQL code and traverse the result set
-            cur = con.cursor()
-            try:
-                cur.execute(keys_on)
-                # execute the statement
-                cur.execute(stmnt)
-            except sqlite3.Error as excp:
-                print("Error %s:" % excp.args[0])
-                return False
-        return True
-
-    def create_players_table(self):
-        '''
-        Create the table ``players`` programmatically, without using .sql file.
-
-        Print an error message in the console if it could not be created.
-
-        :return: ``True`` if the table was successfully created or ``False``
-            otherwise.
-        '''
-        keys_on = 'PRAGMA foreign_keys = ON'
-        stmnt = 'CREATE TABLE players(player_id CHAR PRIMARY KEY)'
-        # Connects to the database. Gets a connection object
-        con = sqlite3.connect(self.db_path)
-        with con:
-            # Get the cursor object.
-            # It allows to execute SQL code and traverse the result set
-            cur = con.cursor()
-            try:
-                cur.execute(keys_on)
-                # execute the statement
-                cur.execute(stmnt)
-            except sqlite3.Error as excp:
-                print("Error %s:" % excp.args[0])
-                return False
-        return True
-
 
 class Connection(object):
     '''
