@@ -88,10 +88,13 @@ class Engine(object):
         cur.execute(keys_on)
         with con:
             cur = con.cursor()
-            cur.execute("DELETE FROM messages")
-            cur.execute("DELETE FROM users")
-            # NOTE since we have ON DELETE CASCADE BOTH IN users_profile AND
-            # friends, WE DO NOT HAVE TO WORRY TO CLEAR THOSE TABLES.
+            cur.execute("DELETE FROM game")
+            cur.execute("DELETE FROM player")
+            cur.execute("DELETE FROM ship")
+            cur.execute("DELETE FROM turn")
+            cur.execute("DELETE FROM shot")
+            # NOTE do we need to delete player, ship, turn and shot,
+            # since they have ON DELETE CASCADE?
 
     # METHODS TO CREATE AND POPULATE A DATABASE USING DIFFERENT SCRIPTS
     def create_tables(self, schema=None):
