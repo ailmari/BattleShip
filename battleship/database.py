@@ -18,8 +18,13 @@ Based on course exercises code by:
 '''
 
 from datetime import datetime
-import time, sqlite3, re, os
-#Default paths for .db and .sql files to create and populate the database.
+import os
+import re
+import sqlite3
+import time
+
+
+# Default paths for .db and .sql files to create and populate the database.
 DEFAULT_DB_PATH = 'db/battleship.db'
 DEFAULT_SCHEMA = "db/battleship_schema_dump.sql"
 DEFAULT_DATA_DUMP = "db/battleship_data_dump.sql"
@@ -42,7 +47,6 @@ class Engine(object):
     :param db_path: The path of the database file (always with respect to the
         calling script. If not specified, the Engine will use the file located
         at *db/battleship.db*
-
     '''
     def __init__(self, db_path=None):
             '''
@@ -60,46 +64,42 @@ class Engine(object):
 
         :return: A Connection instance
         :rtype: Connection
-
         '''
         return Connection(self.db_path)
 
     def remove_database(self):
         '''
         Removes the database file from the filesystem.
-
         '''
         if os.path.exists(self.db_path):
-            #THIS REMOVES THE DATABASE STRUCTURE
+            # THIS REMOVES THE DATABASE STRUCTURE
             os.remove(self.db_path)
 
     def clear(self):
         '''
         Purge the database removing all records from the tables. However,
         it keeps the database schema (meaning the table structure)
-
         '''
         keys_on = 'PRAGMA foreign_keys = ON'
-        #THIS KEEPS THE SCHEMA AND REMOVE VALUES
+        # THIS KEEPS THE SCHEMA AND REMOVE VALUES
         con = sqlite3.connect(self.db_path)
-        #Activate foreing keys support
+        # Activate foreing keys support
         cur = con.cursor()
         cur.execute(keys_on)
         with con:
             cur = con.cursor()
             cur.execute("DELETE FROM messages")
             cur.execute("DELETE FROM users")
-            #NOTE since we have ON DELETE CASCADE BOTH IN users_profile AND
-            #friends, WE DO NOT HAVE TO WORRY TO CLEAR THOSE TABLES.
+            # NOTE since we have ON DELETE CASCADE BOTH IN users_profile AND
+            # friends, WE DO NOT HAVE TO WORRY TO CLEAR THOSE TABLES.
 
-    #METHODS TO CREATE AND POPULATE A DATABASE USING DIFFERENT SCRIPTS
+    # METHODS TO CREATE AND POPULATE A DATABASE USING DIFFERENT SCRIPTS
     def create_tables(self, schema=None):
         '''
         Create programmatically the tables from a schema file.
 
         :param schema: path to the .sql schema file. If this parmeter is
             None, then *db/battleship_schema_dump.sql* is utilized.
-
         '''
         con = sqlite3.connect(self.db_path)
         if schema is None:
@@ -118,22 +118,21 @@ class Engine(object):
 
         :param dump:  path to the .sql dump file. If this parmeter is
             None, then *db/battleship_data_dump.sql* is utilized.
-
         '''
         keys_on = 'PRAGMA foreign_keys = ON'
         con = sqlite3.connect(self.db_path)
-        #Activate foreing keys support
+        # Activate foreing keys support
         cur = con.cursor()
         cur.execute(keys_on)
-        #Populate database from dump
+        # Populate database from dump
         if dump is None:
             dump = DEFAULT_DATA_DUMP
-        with open (dump, encoding="utf-8") as f:
+        with open(dump, encoding="utf-8") as f:
             sql = f.read()
             cur = con.cursor()
             cur.executescript(sql)
 
-    #METHODS TO CREATE THE TABLES PROGRAMMATICALLY WITHOUT USING SQL SCRIPT
+    # METHODS TO CREATE THE TABLES PROGRAMMATICALLY WITHOUT USING SQL SCRIPT
     def create_games_table(self):
         '''
         Create the table ``messages`` programmatically, without using .sql file.
@@ -142,19 +141,18 @@ class Engine(object):
 
         :return: ``True`` if the table was successfully created or ``False``
             otherwise.
-
         '''
         keys_on = 'PRAGMA foreign_keys = ON'
         stmnt = 'CREATE TABLE games(game_id INTEGER PRIMARY KEY, \
                     start DATE)'
         con = sqlite3.connect(self.db_path)
         with con:
-            #Get the cursor object.
-            #It allows to execute SQL code and traverse the result set
+            # Get the cursor object.
+            # It allows to execute SQL code and traverse the result set
             cur = con.cursor()
             try:
                 cur.execute(keys_on)
-                #execute the statement
+                # execute the statement
                 cur.execute(stmnt)
             except sqlite3.Error as excp:
                 print("Error %s:" % excp.args[0])
@@ -169,19 +167,18 @@ class Engine(object):
 
         :return: ``True`` if the table was successfully created or ``False``
             otherwise.
-
         '''
         keys_on = 'PRAGMA foreign_keys = ON'
         stmnt = 'CREATE TABLE players(player_id CHAR PRIMARY KEY)'
-        #Connects to the database. Gets a connection object
+        # Connects to the database. Gets a connection object
         con = sqlite3.connect(self.db_path)
         with con:
-            #Get the cursor object.
-            #It allows to execute SQL code and traverse the result set
+            # Get the cursor object.
+            # It allows to execute SQL code and traverse the result set
             cur = con.cursor()
             try:
                 cur.execute(keys_on)
-                #execute the statement
+                # execute the statement
                 cur.execute(stmnt)
             except sqlite3.Error as excp:
                 print("Error %s:" % excp.args[0])
@@ -205,7 +202,6 @@ class Connection(object):
 
     :param db_path: Location of the database file.
     :type dbpath: str
-
     '''
     def __init__(self, db_path):
         super(Connection, self).__init__()
@@ -214,13 +210,12 @@ class Connection(object):
     def close(self):
         '''
         Closes the database connection, commiting all changes.
-
         '''
         if self.con:
             self.con.commit()
             self.con.close()
 
-    #FOREIGN KEY STATUS
+    # FOREIGN KEY STATUS
     def check_foreign_keys_status(self):
         '''
         Check if the foreign keys has been activated.
@@ -228,14 +223,13 @@ class Connection(object):
         :return: ``True`` if  foreign_keys is activated and ``False`` otherwise.
         :raises sqlite3.Error: when a sqlite3 error happen. In this case the
             connection is closed.
-
         '''
         try:
-            #Create a cursor to receive the database values
+            # Create a cursor to receive the database values
             cur = self.con.cursor()
-            #Execute the pragma command
+            # Execute the pragma command
             cur.execute('PRAGMA foreign_keys')
-            #We know we retrieve just one record: use fetchone()
+            # We know we retrieve just one record: use fetchone()
             data = cur.fetchone()
             is_activated = data == (1,)
             print("Foreign Keys status: %s" % 'ON' if is_activated else 'OFF')
@@ -250,14 +244,13 @@ class Connection(object):
         Activate the support for foreign keys.
 
         :return: ``True`` if operation succeed and ``False`` otherwise.
-
         '''
         keys_on = 'PRAGMA foreign_keys = ON'
         try:
-            #Get the cursor object.
-            #It allows to execute SQL code and traverse the result set
+            # Get the cursor object.
+            # It allows to execute SQL code and traverse the result set
             cur = self.con.cursor()
-            #execute the pragma command, ON
+            # execute the pragma command, ON
             cur.execute(keys_on)
             return True
         except sqlite3.Error as excp:
@@ -269,14 +262,13 @@ class Connection(object):
         Deactivate the support for foreign keys.
 
         :return: ``True`` if operation succeed and ``False`` otherwise.
-
         '''
         keys_on = 'PRAGMA foreign_keys = OFF'
         try:
-            #Get the cursor object.
-            #It allows to execute SQL code and traverse the result set
+            # Get the cursor object.
+            # It allows to execute SQL code and traverse the result set
             cur = self.con.cursor()
-            #execute the pragma command, OFF
+            # execute the pragma command, OFF
             cur.execute(keys_on)
             return True
         except sqlite3.Error as excp:
