@@ -6,8 +6,7 @@ CREATE TABLE IF NOT EXISTS game(
   end_time DATE,
   x_size INTEGER,
   y_size INTEGER,
-  turn_length INTEGER,
-  );
+  turn_length INTEGER);
 CREATE TABLE IF NOT EXISTS player(
   id INTEGER,
   nickname TEXT,

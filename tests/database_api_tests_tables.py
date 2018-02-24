@@ -38,6 +38,7 @@ class TestTableSchemas(unittest.TestCase):
         '''
         print("Testing ", cls.__name__)
         ENGINE.remove_database()
+        ENGINE.create_tables()
 
     @classmethod
     def tearDownClass(cls):
@@ -49,7 +50,12 @@ class TestTableSchemas(unittest.TestCase):
         '''
         Populates the database
         '''
-        pass
+        try:
+            ENGINE.populate_tables()
+            self.connection = ENGINE.connect()
+        except Exception as e:
+            print("error at setUp:", e)
+            ENGINE.clear()
 
     def tearDown(self):
         '''
@@ -87,3 +93,8 @@ class TestTableSchemas(unittest.TestCase):
         Checks that the shot-table has right schema.
         '''
         pass
+
+
+if __name__ == "__main__":
+    print("Starting database table tests...")
+    unittest.main()
