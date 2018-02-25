@@ -251,12 +251,12 @@ class Connection(object):
         if row is None:
             return None
         #Build the return object
-        return {'id': str(row['id']),
-                'start_time': str(row['start_time']),
-                'end_time': str(row['end_time']),
-                'x_size': str(row['x_size']),
-                'y_size': str(row['y_size']),
-                'turn_length': str(row['turn_length'])}
+        return {'id': row['id'],
+                'start_time': row['start_time'],
+                'end_time': row['end_time'],
+                'x_size': row['x_size'],
+                'y_size': row['y_size'],
+                'turn_length': row['turn_length']}
 
     def delete_game(self, gameid):
         '''
@@ -329,9 +329,9 @@ class Connection(object):
         if row is None:
             return None
         #Build the return object
-        return {'id': str(row['id']),
-                'nickname': str(row['nickname']),
-                'game': str(row['game'])}
+        return {'id': row['id'],
+                'nickname': row['nickname'],
+                'game': row['game']}
 
     def delete_player(self, playerid):
         '''
@@ -404,14 +404,14 @@ class Connection(object):
         if row is None:
             return None
         #Build the return object
-        return {'shipid': str(row['id']),
-                'player': str(row['player']),
-                'game': str(row['game']),
-                'stern_x': str(row['stern_x']),
-                'stern_y': str(row['stern_y']),
-                'bow_x': str(row['bow_x']),
-                'bow_y': str(row['bow_y']),
-                'ship_type': str(row['ship_type'])}
+        return {'shipid': row['id'],
+                'player': row['player'],
+                'game': row['game'],
+                'stern_x': row['stern_x'],
+                'stern_y': row['stern_y'],
+                'bow_x': row['bow_x'],
+                'bow_y': row['bow_y'],
+                'ship_type': row['ship_type']}
 
     def delete_ship(self, shipid):
         '''
