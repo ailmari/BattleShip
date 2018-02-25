@@ -20,11 +20,28 @@ Based on course exercises code by:
 
 import unittest
 import sqlite3
-
+from datetime import datetime
 from battleship import database
 
 
 ENGINE = database.Engine('db/battleship_test.db')
+
+GAME1 = {
+    'id': 12345,
+    'start_time': "2018-2-21 13:40:36.877952",
+    'end_time': "2018-2-25 13:40:36.877952",
+    'x_size': 10,
+    'y_size': 10,
+    'turn_length': 5,
+}
+
+NEW_GAME = {
+    'id': 12346,
+    'end_time': '',
+    'x_size': 10,
+    'y_size': 10,
+    'turn_length': 5,
+}
 
 
 class GameDBTestCase(unittest.TestCase):
@@ -69,6 +86,56 @@ class GameDBTestCase(unittest.TestCase):
             print('(' + function.__name__ + ')', function.__doc__)
             function(self)
         return wrapped_function
+
+    @print_test_info
+    def test_get_game(self):
+        '''
+        Test get_game.
+        '''
+        game = self.connection.get_game(GAME1['id'])
+        self.assertEqual(game, GAME1)
+
+    @print_test_info
+    def test_get_game_wrong_id(self):
+        '''
+        Test get_game with nonexistent ID.
+        '''
+        game = self.connection.get_game('NONEXISTENT')
+        self.assertIsNone(game)
+
+    @print_test_info
+    def test_delete_game(self):
+        '''
+        Test delete_game.
+        '''
+        deleted = self.connection.delete_game(GAME1['id'])
+        self.assertTrue(deleted)
+        game = self.connection.get_game(GAME1['id'])
+        self.assertIsNone(game)
+
+    @print_test_info
+    def test_delete_game_wrong_id(self):
+        '''
+        Test delete_game with nonexistent ID.
+        '''
+        deleted = self.connection.delete_game('NONEXISTENT')
+        self.assertFalse(deleted)
+
+    @print_test_info
+    def test_create_game(self):
+        '''
+        Test create_game.
+        '''
+        kwargs = NEW_GAME.copy()
+        kwargs.pop('id')
+        kwargs.pop('end_time')
+        new_id = self.connection.create_game(**kwargs)
+        game = self.connection.get_game(new_id)
+        print(game)
+        for key, value in NEW_GAME.items():
+            self.assertEqual(value, game.get(key))
+        # Test that the timeformat is correct. Raises error if not.
+        datetime.strptime(game['start_time'], '%Y-%m-%d %H:%M:%S.%f')
 
 
 if __name__ == "__main__":
