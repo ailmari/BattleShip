@@ -224,3 +224,39 @@ class Connection(object):
         except sqlite3.Error as excp:
             print("Error %s:" % excp.args[0])
             return False
+
+    # The API
+    # Game table API
+    def get_game(self, gameid):
+        '''
+        Extracts a game from the database
+
+        :param int gameid: The id of the game.
+        :return: A dictionary with the game data
+            or None if game with the id does not exist.
+        '''
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM game WHERE id = ?'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Statement
+        pvalue = (gameid,)
+        cur.execute(query, pvalue)
+        #Process the response.
+        #Just one row is expected
+        row = cur.fetchone()
+        if row is None:
+            return None
+        #Build the return object
+        return {'gameid': str(row['id']),
+                'start_time': str(row['start_time']),
+                'end_time': str(row['end_time']),
+                'x_size': str(row['x_size']),
+                'y_size': str(row['y_size']),
+                'turn_length': str(row['turn_length'])}
+
+    def delete_game(self, gameid):
+        return None
