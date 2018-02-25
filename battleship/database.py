@@ -426,23 +426,25 @@ class Connection(object):
         return players
 
     # Ship API
-    def get_ship(self, shipid):
+    def get_ship(self, shipid, playerid, gameid):
         '''
-        Extracts a ship with given id from the database.
+        Extracts a ship with given ids from the database.
 
         :param int shipid: The id of the ship.
+        :param int player: The id of the player who owns the ship.
+        :param int gameid: The id of the game where the ship is.
         :return: A dictionary with the ship data
-            or None if ship with given id does not exist.
+            or None if ship with some of the given ids do not exist.
         '''
         #Activate foreign key support
         self.set_foreign_keys_support()
         #Create the SQL Query
-        query = 'SELECT * FROM ship WHERE id = ?'
+        query = 'SELECT * FROM ship WHERE id = ? AND player = ? AND game = ?'
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
         #Execute main SQL Query
-        pvalue = (shipid,)
+        pvalue = (shipid, playerid, gameid)
         cur.execute(query, pvalue)
         #Process the response.
         #Just one row is expected
@@ -450,7 +452,7 @@ class Connection(object):
         if row is None:
             return None
         #Build the return object
-        return {'shipid': row['id'],
+        return {'id': row['id'],
                 'player': row['player'],
                 'game': row['game'],
                 'stern_x': row['stern_x'],
@@ -459,21 +461,76 @@ class Connection(object):
                 'bow_y': row['bow_y'],
                 'ship_type': row['ship_type']}
 
-    def delete_ship(self, shipid):
+    def get_ships(self, gameid):
         '''
-        Deletes a ship with given id from the database.
+        Extracts all ships from game with gameid.
+
+        :param int gameid: The id of the game where ship is taken.
+        :return: A list of  dictionaries with the ship datas
+            or None if game with given id does not exist.
+        '''
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM ship WHERE game = ?'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        pvalue = (gameid,)
+        cur.execute(query, pvalue)
+        #Process the response.
+        rows = cur.fetchall()
+        if rows == []:
+            return None
+        #Build the return object
+        ships = [dict(row) for row in rows]
+        return ships
+
+    def get_ships_by_player(self, gameid, playerid):
+        '''
+        Extracts all ships of a player from game with gameid.
+
+        :param int gameid: The id of the game where ship is taken.
+        :param int playerid: The id of the player whose ships are returned.
+        :return: A list of  dictionaries with the ship datas
+            or None if game with given id does not exist.
+        '''
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM ship WHERE game = ? AND player = ?'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        pvalue = (gameid, playerid)
+        cur.execute(query, pvalue)
+        #Process the response.
+        rows = cur.fetchall()
+        if rows == []:
+            return None
+        #Build the return object
+        ships = [dict(row) for row in rows]
+        return ships
+
+    def delete_ship(self, shipid, playerid, gameid):
+        '''
+        Deletes a ship with given ids from the database.
 
         :param int shipid: The id of the ship.
+        :param int playerid: The id of the player who owns the ship.
+        :param int shipid: The id of the game where the ship is.
         :return: True if the ship has been deleted, False otherwise.
         '''
         #Create the SQL Statement
-        stmnt = 'DELETE FROM ship WHERE id = ?'
+        stmnt = 'DELETE FROM ship WHERE id = ? AND player = ? AND game = ?'
         #Activate foreign key support
         self.set_foreign_keys_support()
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
-        pvalue = (shipid,)
+        pvalue = (shipid, playerid, gameid)
         try:
             cur.execute(stmnt, pvalue)
             #Commit the message
@@ -494,20 +551,26 @@ class Connection(object):
         :param int bow_x: Ship bow's x-coordinate.
         :param int bow_y: Ship bow's y-coordinate.
         :param string ship_type: String to determine custom type of ship.
+        :return: True if ship was created, False otherwise.
         '''
         #Create the SQL Statement
         stmnt = 'INSERT INTO ship (id, player, game, stern_x, stern_y, bow_x, bow_y, ship_type) \
-                 VALUES (?, ?, ?, ?, ?, ?, ? ,?)'
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
         #Activate foreign key support
         self.set_foreign_keys_support()
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
         #Generate the values for SQL statement
-        pvalue = (shipid, playerid, gameid, stern_x, stern_x, bow_x, bow_y, ship_type)
+        pvalue = (shipid, playerid, gameid, stern_x, stern_y, bow_x, bow_y, ship_type)
         #Execute the statement
-        cur.execute(stmnt, pvalue)
+        try:
+            cur.execute(stmnt, pvalue)
+        except sqlite3.Error as e:
+            print("Error %s:" % (e.args[0]))
+            return False
         self.con.commit()
+        return True
 
     # Turn API
     def get_turns_by_player(self, playerid, gameid):

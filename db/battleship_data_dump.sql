@@ -4,6 +4,8 @@ INSERT INTO "player" VALUES(1919, "Fu1L_s41V0_n05CoP3_720", 12345);
 INSERT INTO "player" VALUES(1918, "n00b", 12345);
 
 INSERT INTO "ship" VALUES(5454, 1919, 12345, 2, 3, 2, 6, "frigate");
+INSERT INTO "ship" VALUES(2, 1919, 12345, 3, 6, 6, 6, "submarine");
+INSERT INTO "ship" VALUES(2, 1918, 12345, 3, 6, 4, 4, "submarine");
 
 INSERT INTO "turn" VALUES(1, 1919, 12345);
 INSERT INTO "turn" VALUES(1, 1918, 12345);
