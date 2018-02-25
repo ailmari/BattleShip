@@ -64,30 +64,41 @@ class TestTableSchemas(unittest.TestCase):
         self.connection.close()
         ENGINE.clear()
 
+    def print_test_info(function):
+        def wrapped_function(self):
+            print('('+function.__name__+')', function.__doc__)
+            function(self)
+        return wrapped_function
+
+    @print_test_info
     def test_game_table_schema(self):
         '''
         Checks that the game-table has right schema.
         '''
         pass
 
+    @print_test_info
     def test_player_table_schema(self):
         '''
         Checks that the player-table has right schema.
         '''
         pass
 
+    @print_test_info
     def test_ship_table_schema(self):
         '''
         Checks that the ship-table has right schema.
         '''
         pass
 
+    @print_test_info
     def test_turn_table_schema(self):
         '''
         Checks that the turn-table has right schema.
         '''
         pass
 
+    @print_test_info
     def test_shot_table_schema(self):
         '''
         Checks that the shot-table has right schema.
