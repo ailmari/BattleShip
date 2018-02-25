@@ -45,6 +45,11 @@ P1TURN2 = {
     'player': 1919,
     'game': 12345,
 }
+P2TURN2 = {
+    'turn_number': 2,
+    'player': 1918,
+    'game': 12345,
+}
 
 GAME1_TURNS = [P1TURN1, P2TURN1, P1TURN2]
 PLAYER1_TURNS = [P1TURN1, P1TURN2]
@@ -128,6 +133,34 @@ class TurnDBTestCase(unittest.TestCase):
         '''
         turns = self.connection.get_turns('NONEXISTENT')
         self.assertIsNone(turns)
+
+    @print_test_info
+    def test_create_turn(self):
+        '''
+        Test create_turn.
+        '''
+        success = self.connection.create_turn(
+            P2TURN2['turn_number'],
+            P2TURN2['player'],
+            P2TURN2['game'],
+        )
+        self.assertTrue(success)
+        turns = self.connection.get_turns(GAME1_ID)
+        new_turns = GAME1_TURNS[:]
+        new_turns.append(P2TURN2)
+        self.assertEqual(turns, new_turns)
+
+    @print_test_info
+    def test_create_turn_same_twice(self):
+        '''
+        Test creating_turn with same IDs that already exists.
+        '''
+        success = self.connection.create_turn(
+            P1TURN1['turn_number'],
+            P1TURN1['player'],
+            P1TURN1['game'],
+        )
+        self.assertFalse(success)
 
 
 if __name__ == "__main__":

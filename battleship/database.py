@@ -583,6 +583,7 @@ class Connection(object):
         :param int turn_number: The number of the turn.
         :param int playerid; The id of the player who played the turn.
         :param int gameid: The id of the game turn was played in.
+        :return: True if turn was created, False otherwise.
         '''
         #Create the SQL Statement
         stmnt = 'INSERT INTO turn (turn_number, player, game) \
@@ -596,8 +597,13 @@ class Connection(object):
         start_time = str(datetime.today())
         pvalue = (turn_number, playerid, gameid)
         #Execute the statement
-        cur.execute(stmnt, pvalue)
+        try:
+            cur.execute(stmnt, pvalue)
+        except sqlite3.Error as e:
+            print("Error %s:" % (e.args[0]))
+            return False
         self.con.commit()
+        return True
 
     # Shot API
     def get_shot(self):
