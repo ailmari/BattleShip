@@ -303,6 +303,10 @@ class Connection(object):
         #Execute the statement
         cur.execute(stmnt, pvalue)
         self.con.commit()
+        #Extract the game id
+        id = cur.lastrowid
+        #Return the game id
+        return id if id is not None else None
 
     # Player table API
     def get_player(self, playerid):
