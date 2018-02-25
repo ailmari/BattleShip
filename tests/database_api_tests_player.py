@@ -28,6 +28,8 @@ ENGINE = database.Engine('db/battleship_test.db')
 
 # Constants for different tests
 
+GAME1_ID = 12345
+
 PLAYER1 = {
     'id': 1919,
     'nickname': 'Fu1L_s41V0_n05CoP3_720',
@@ -93,9 +95,9 @@ class PlayerDBTestCase(unittest.TestCase):
     @print_test_info
     def test_get_player(self):
         '''
-        Test get_player with id 1919.
+        Test get_player.
         '''
-        player = self.connection.get_player(1919)
+        player = self.connection.get_player(PLAYER1['id'], PLAYER1['game'])
         self.assertEqual(player, PLAYER1)
 
     @print_test_info
@@ -103,25 +105,25 @@ class PlayerDBTestCase(unittest.TestCase):
         '''
         Test get_player with ID that does not exist.
         '''
-        player = self.connection.get_player('NONEXISTENT')
+        player = self.connection.get_player('NONEXISTENT', GAME1_ID)
         self.assertIsNone(player)
 
     @print_test_info
     def test_delete_player(self):
         '''
-        Test delete_player with id 1919.
+        Test delete_player.
         '''
-        response = self.connection.delete_player(1919)
-        self.assertTrue(response)
-        response2 = self.connection.get_player(1919)
-        self.assertIsNone(response2)
+        resp = self.connection.delete_player(PLAYER1['id'], PLAYER1['game'])
+        self.assertTrue(resp)
+        resp2 = self.connection.get_player(PLAYER1['id'], PLAYER1['game'])
+        self.assertIsNone(resp2)
 
     @print_test_info
     def test_delete_player_wrong_id(self):
         '''
         Test delete_player with ID that does not exist.
         '''
-        response = self.connection.delete_player('NONEXISTENT')
+        response = self.connection.delete_player('NONEXISTENT', GAME1_ID)
         self.assertFalse(response)
 
     @print_test_info
@@ -132,12 +134,13 @@ class PlayerDBTestCase(unittest.TestCase):
         playerid = NEW_PLAYER['id']
         nickname = NEW_PLAYER['nickname']
         gameid = NEW_PLAYER['game']
-        self.connection.create_player(
+        success = self.connection.create_player(
             playerid=playerid,
             nickname=nickname,
             gameid=gameid,
         )
-        player = self.connection.get_player(playerid)
+        self.assertTrue(success)
+        player = self.connection.get_player(playerid, gameid)
         self.assertEqual(player, NEW_PLAYER)
 
     @print_test_info
@@ -149,12 +152,13 @@ class PlayerDBTestCase(unittest.TestCase):
         nickname = NEW_PLAYER_INCORRECT_GAME['nickname']
         gameid = NEW_PLAYER_INCORRECT_GAME['game']
 
-        self.connection.create_player(
+        success = self.connection.create_player(
             playerid=playerid,
             nickname=nickname,
             gameid=gameid,
         )
-        player = self.connection.get_player(playerid)
+        self.assertFalse(success)
+        player = self.connection.get_player(playerid, gameid)
         self.assertIsNone(player)
 
     @print_test_info
@@ -165,12 +169,12 @@ class PlayerDBTestCase(unittest.TestCase):
         playerid = PLAYER1['id']
         nickname = PLAYER1['nickname']
         gameid = PLAYER1['game']
-        player = self.connection.create_player(
+        success = self.connection.create_player(
             playerid=playerid,
             nickname=nickname,
             gameid=gameid,
         )
-        self.assertIsNone(player)
+        self.assertFalse(success)
 
 
 if __name__ == "__main__":

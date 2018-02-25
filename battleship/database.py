@@ -309,23 +309,24 @@ class Connection(object):
         return id if id is not None else None
 
     # Player table API
-    def get_player(self, playerid):
+    def get_player(self, playerid, gameid):
         '''
-        Extracts a player with given id from the database.
+        Extracts a player from game with gameid.
 
         :param int playerid: The id of the player.
+        :param int gameid: The id of the game where player is taken.
         :return: A dictionary with the player data
             or None if player with given id does not exist.
         '''
         #Activate foreign key support
         self.set_foreign_keys_support()
         #Create the SQL Query
-        query = 'SELECT * FROM player WHERE id = ?'
+        query = 'SELECT * FROM player WHERE id = ? AND game = ?'
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
         #Execute main SQL Query
-        pvalue = (playerid,)
+        pvalue = (playerid, gameid)
         cur.execute(query, pvalue)
         #Process the response.
         #Just one row is expected
@@ -337,21 +338,22 @@ class Connection(object):
                 'nickname': row['nickname'],
                 'game': row['game']}
 
-    def delete_player(self, playerid):
+    def delete_player(self, playerid, gameid):
         '''
-        Deletes a player with given id from the database.
+        Deletes a player with given id from game with gameid.
 
         :param int playerid: The id of the player.
+        :param int gameid: The id of the game where player is taken.
         :return: True if the player has been deleted, False otherwise.
         '''
         #Create the SQL Statement
-        stmnt = 'DELETE FROM player WHERE id = ?'
+        stmnt = 'DELETE FROM player WHERE id = ? AND game = ?'
         #Activate foreign key support
         self.set_foreign_keys_support()
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
-        pvalue = (playerid,)
+        pvalue = (playerid, gameid)
         try:
             cur.execute(stmnt, pvalue)
             #Commit the message
@@ -367,6 +369,7 @@ class Connection(object):
         :param int playerid: The id of the player.
         :param string nickname; The nicknameo of the player.
         :param int gameid: The id of the game player is joining.
+        :return: True if player was created, False otherwise.
         '''
         #Create the SQL Statement
         stmnt = 'INSERT INTO player (id, nickname, game) \
@@ -380,8 +383,13 @@ class Connection(object):
         start_time = str(datetime.today())
         pvalue = (playerid, nickname, gameid)
         #Execute the statement
-        cur.execute(stmnt, pvalue)
+        try:
+            cur.execute(stmnt, pvalue)
+        except sqlite3.Error as e:
+            print("Error %s:" % (e.args[0]))
+            return False
         self.con.commit()
+        return True
 
     # Ship API
     def get_ship(self, shipid):
