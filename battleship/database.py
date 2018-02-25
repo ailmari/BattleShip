@@ -510,14 +510,71 @@ class Connection(object):
         self.con.commit()
 
     # Turn API
-    def get_turn(self):
+    def get_turns_by_player(self, playerid, gameid):
         '''
-        What should we do with turns?
-        Return all the turns of game,
-        and/or all the turns of player?
-        Individual turn?
+        get turns played by a single player in one game.
+
+        :param int playerid: The id of the player.
+        :param int gameid: The id of the game which turns are returned.
+        :return: A list with the turns, or None if either ID doesn't exist.
         '''
-        return "Not implemented"
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM turn WHERE player = ? AND game = ?'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        pvalue = (playerid, gameid)
+        cur.execute(query, pvalue)
+        #Process the response.
+        rows = cur.fetchall()
+        if rows == []:
+            return None
+        #Build the return object
+        fields = ('turn_number', 'player', 'game')
+        turns = list()
+        for row in rows:
+            turns.append(
+                {'turn_number': row['turn_number'],
+                 'player': row['player'],
+                 'game': row['game'],
+                }
+            )
+        return turns
+
+    def get_turns(self, gameid):
+        '''
+        Get all turns of a game.
+        :param int gameid: The id of the game which turns are returned.
+        :return: A list with the turns, or None if ID doesn't exist.
+        '''
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM turn WHERE game = ?'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        pvalue = (gameid,)
+        cur.execute(query, pvalue)
+        #Process the response.
+        rows = cur.fetchall()
+        if rows == []:
+            return None
+        #Build the return object
+        fields = ('turn_number', 'player', 'game')
+        turns = list()
+        for row in rows:
+            turns.append(
+                {'turn_number': row['turn_number'],
+                 'player': row['player'],
+                 'game': row['game'],
+                }
+            )
+        return turns
 
     def create_turn(self, turn_number, playerid, gameid):
         '''
