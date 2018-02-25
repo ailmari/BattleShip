@@ -229,7 +229,7 @@ class Connection(object):
     # Game table API
     def get_game(self, gameid):
         '''
-        Extracts a game from the database.
+        Extracts a game with given id from the database.
 
         :param int gameid: The id of the game.
         :return: A dictionary with the game data
@@ -251,7 +251,7 @@ class Connection(object):
         if row is None:
             return None
         #Build the return object
-        return {'gameid': str(row['id']),
+        return {'id': str(row['id']),
                 'start_time': str(row['start_time']),
                 'end_time': str(row['end_time']),
                 'x_size': str(row['x_size']),
@@ -260,7 +260,7 @@ class Connection(object):
 
     def delete_game(self, gameid):
         '''
-        Deletes a game from the database.
+        Deletes a game with given id from the database.
 
         :param int gameid: The id of the game.
         :return: True if the game has been deleted, False otherwise.
@@ -283,7 +283,7 @@ class Connection(object):
 
     def create_game(self, x_size, y_size, turn_length):
         '''
-        Creates a new game into the database.
+        Creates a new game into the database. Id is autoincremented.
 
         :param int x_size: The desired number of columns on the board (or the 'ocean').
         :param int y_size; The desired number of rows on the board.
@@ -304,14 +304,225 @@ class Connection(object):
         cur.execute(stmnt, pvalue)
         self.con.commit()
 
+    # Player table API
     def get_player(self, playerid):
         '''
+        Extracts a player with given id from the database.
+
+        :param int playerid: The id of the player.
+        :return: A dictionary with the player data
+            or None if player with given id does not exist.
         '''
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM player WHERE id = ?'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        pvalue = (playerid,)
+        cur.execute(query, pvalue)
+        #Process the response.
+        #Just one row is expected
+        row = cur.fetchone()
+        if row is None:
+            return None
+        #Build the return object
+        return {'id': str(row['id']),
+                'nickname': str(row['nickname']),
+                'game': str(row['game'])}
 
     def delete_player(self, playerid):
         '''
-        '''
+        Deletes a player with given id from the database.
 
-    def create_player(self):
+        :param int playerid: The id of the player.
+        :return: True if the player has been deleted, False otherwise.
+        '''
+        #Create the SQL Statement
+        stmnt = 'DELETE FROM player WHERE id = ?'
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        pvalue = (playerid,)
+        try:
+            cur.execute(stmnt, pvalue)
+            #Commit the message
+            self.con.commit()
+        except sqlite3.Error as e:
+            print("Error %s:" % (e.args[0]))
+        return bool(cur.rowcount)
+
+    def create_player(self, playerid, nickname, gameid):
+        '''
+        Creates a new player into the database.
+
+        :param int playerid: The id of the player.
+        :param string nickname; The nicknameo of the player.
+        :param int gameid: The id of the game player is joining.
+        '''
+        #Create the SQL Statement
+        stmnt = 'INSERT INTO player (id, nickname, game) \
+                 VALUES (?, ?, ?)'
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Generate the values for SQL statement
+        start_time = str(datetime.today())
+        pvalue = (playerid, nickname, gameid)
+        #Execute the statement
+        cur.execute(stmnt, pvalue)
+        self.con.commit()
+
+    # Ship API
+    def get_ship(self, shipid):
+        '''
+        Extracts a ship with given id from the database.
+
+        :param int shipid: The id of the ship.
+        :return: A dictionary with the ship data
+            or None if ship with given id does not exist.
+        '''
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM ship WHERE id = ?'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        pvalue = (shipid,)
+        cur.execute(query, pvalue)
+        #Process the response.
+        #Just one row is expected
+        row = cur.fetchone()
+        if row is None:
+            return None
+        #Build the return object
+        return {'shipid': str(row['id']),
+                'player': str(row['player']),
+                'game': str(row['game']),
+                'stern_x': str(row['stern_x']),
+                'stern_y': str(row['stern_y']),
+                'bow_x': str(row['bow_x']),
+                'bow_y': str(row['bow_y']),
+                'ship_type': str(row['ship_type'])}
+
+    def delete_ship(self, shipid):
+        '''
+        Deletes a ship with given id from the database.
+
+        :param int shipid: The id of the ship.
+        :return: True if the ship has been deleted, False otherwise.
+        '''
+        #Create the SQL Statement
+        stmnt = 'DELETE FROM ship WHERE id = ?'
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        pvalue = (shipid,)
+        try:
+            cur.execute(stmnt, pvalue)
+            #Commit the message
+            self.con.commit()
+        except sqlite3.Error as e:
+            print("Error %s:" % (e.args[0]))
+        return bool(cur.rowcount)
+
+    def create_ship(self, shipid, playerid, gameid, stern_x, stern_y, bow_x, bow_y, ship_type):
+        '''
+        Creates a new ship into the database.
+
+        :param int shipid: The id of the ship.
+        :param int player; The id of the player who owns the ship.
+        :param int gameid: The id of the game ship belongs to.
+        :param int stern_x: Ship stern's x-coordinate.
+        :param int stern_y: Ship stern's y-coordinate.
+        :param int bow_x: Ship bow's x-coordinate.
+        :param int bow_y: Ship bow's y-coordinate.
+        :param string ship_type: String to determine custom type of ship.
+        '''
+        #Create the SQL Statement
+        stmnt = 'INSERT INTO ship (id, player, game, stern_x, stern_y, bow_x, bow_y, ship_type) \
+                 VALUES (?, ?, ?, ?, ?, ?, ? ,?)'
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Generate the values for SQL statement
+        pvalue = (shipid, playerid, gameid, stern_x, stern_x, bow_x, bow_y, ship_type)
+        #Execute the statement
+        cur.execute(stmnt, pvalue)
+        self.con.commit()
+
+    # Turn API
+    def get_turn(self):
+        '''
+        What should we do with turns?
+        Return all the turns of game,
+        and/or all the turns of player?
+        Individual turn?
+        '''
+        return "Not implemented"
+
+    def create_turn(self, turn_number, playerid, gameid):
+        '''
+        Creates a new turn into a game.
+
+        :param int turn_number: The number of the turn.
+        :param int playerid; The id of the player who played the turn.
+        :param int gameid: The id of the game turn was played in.
+        '''
+        #Create the SQL Statement
+        stmnt = 'INSERT INTO turn (turn_number, player, game) \
+                 VALUES (?, ?, ?)'
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Generate the values for SQL statement
+        start_time = str(datetime.today())
+        pvalue = (turn_number, playerid, gameid)
+        #Execute the statement
+        cur.execute(stmnt, pvalue)
+        self.con.commit()
+
+    # Shot API
+    def get_shot(self):
         '''
         '''
+        return "Not implemented"
+
+    def create_shot(self, turnid, playerid, gameid, x, y, shot_type):
+        '''
+        Creates a new shot into a game.
+
+        :param int turnid: The number of the turn shot was fired.
+        :param int playerid; The id of the player who fired the shot.
+        :param int gameid: The id of the game turn shot was fired in.
+        :param int x: The x-coordinate of the shot.
+        :param int y: The y-coordinate of the shot.
+        :param shot_type: Customizable type of the shot (e.g. single or area-of-effect).
+        '''
+        #Create the SQL Statement
+        stmnt = 'INSERT INTO shot (turn, player, game, x, y, shot_type) \
+                 VALUES (?, ?, ?, ?, ?, ?)'
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Generate the values for SQL statement
+        pvalue = (turnid, playerid, gameid, x, y, shot_type)
+        #Execute the statement
+        cur.execute(stmnt, pvalue)
+        self.con.commit()
