@@ -28,13 +28,22 @@ ENGINE = database.Engine('db/battleship_test.db')
 
 # Constants for different tests
 
-GAME1_ID = 12345
 
 PLAYER1 = {
     'id': 1919,
     'nickname': 'Fu1L_s41V0_n05CoP3_720',
     'game': 12345,
 }
+
+PLAYER2 = {
+    'id': 1918,
+    'nickname': 'n00b',
+    'game': 12345,
+}
+
+GAME1_ID = 12345
+GAME1_PLAYERS = [PLAYER1, PLAYER2]
+
 
 NEW_PLAYER = {
     'id': 1,
@@ -107,6 +116,23 @@ class PlayerDBTestCase(unittest.TestCase):
         '''
         player = self.connection.get_player('NONEXISTENT', GAME1_ID)
         self.assertIsNone(player)
+
+    @print_test_info
+    def test_get_players(self):
+        '''
+        Test get_players
+        '''
+        players = self.connection.get_players(GAME1_ID)
+        for player in players:
+            self.assertIn(player, GAME1_PLAYERS)
+
+    @print_test_info
+    def test_get_players_wrong_id(self):
+        '''
+        Test get_players with nonexistent game ID.
+        '''
+        players = self.connection.get_players('NONEXISTENT')
+        self.assertIsNone(players)
 
     @print_test_info
     def test_delete_player(self):

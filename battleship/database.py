@@ -391,6 +391,40 @@ class Connection(object):
         self.con.commit()
         return True
 
+    def get_players(self, gameid):
+        '''
+        Extracts all players from game with gameid.
+
+        :param int gameid: The id of the game where player is taken.
+        :return: A list of  dictionaries with the player datas
+            or None if game with given id does not exist.
+        '''
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM player WHERE game = ?'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        pvalue = (gameid,)
+        cur.execute(query, pvalue)
+        #Process the response.
+        rows = cur.fetchall()
+        if rows == []:
+            return None
+        #Build the return object
+        fields = ('id', 'nickname', 'game')
+        players = list()
+        for row in rows:
+            players.append(
+                {'id': row['id'],
+                 'nickname': row['nickname'],
+                 'game': row['game'],
+                }
+            )
+        return players
+
     # Ship API
     def get_ship(self, shipid):
         '''
