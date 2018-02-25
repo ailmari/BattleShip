@@ -229,7 +229,7 @@ class Connection(object):
     # Game table API
     def get_game(self, gameid):
         '''
-        Extracts a game from the database
+        Extracts a game from the database.
 
         :param int gameid: The id of the game.
         :return: A dictionary with the game data
@@ -259,4 +259,54 @@ class Connection(object):
                 'turn_length': str(row['turn_length'])}
 
     def delete_game(self, gameid):
-        return None
+        '''
+        Deletes a game from the database.
+
+        :param int gameid: The id of the game.
+        :return: True if the game has been deleted, False otherwise.
+        '''
+        #Create the SQL Statement
+        stmnt = 'DELETE FROM game WHERE id = ?'
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        pvalue = (gameid,)
+        try:
+            cur.execute(stmnt, pvalue)
+            #Commit the message
+            self.con.commit()
+        except sqlite3.Error as e:
+            print("Error %s:" % (e.args[0]))
+        return bool(cur.rowcount)
+
+    def create_game(self, x_size, y_size, turn_length):
+        '''
+        '''
+        #Create the SQL Statement
+        stmnt = 'INSERT INTO game (id, start_time, end_time, x_size, y_size, turn_length) \
+                 VALUES (?, ?, ?, ?, ?, ?)'
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Generate the values for SQL statement
+        start_time = str(datetime.today())
+        pvalue = (None, start_time, '', x_size, y_size, turn_length)
+        #Execute the statement
+        cur.execute(stmnt, pvalue)
+        self.con.commit()
+
+    def get_player(self, playerid):
+        '''
+        '''
+
+    def delete_player(self, playerid):
+        '''
+        '''
+
+    def create_player(self):
+        '''
+        '''

@@ -2,8 +2,8 @@ PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS game(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  start_time DATE,
-  end_time DATE,
+  start_time DATETIME,
+  end_time DATETIME,
   x_size INTEGER,
   y_size INTEGER,
   turn_length INTEGER);
