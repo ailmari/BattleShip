@@ -283,6 +283,11 @@ class Connection(object):
 
     def create_game(self, x_size, y_size, turn_length):
         '''
+        Creates a new game into the database.
+
+        :param int x_size: The desired number of columns on the board (or the 'ocean').
+        :param int y_size; The desired number of rows on the board.
+        :param int turn_size: The desired length of one turn in seconds.
         '''
         #Create the SQL Statement
         stmnt = 'INSERT INTO game (id, start_time, end_time, x_size, y_size, turn_length) \
