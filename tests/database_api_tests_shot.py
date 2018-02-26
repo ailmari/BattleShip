@@ -192,7 +192,7 @@ class ShotDBTestCase(unittest.TestCase):
         self.assertTrue(success)
         new_turn2_shots = TURN2_SHOTS[:]
         new_turn2_shots.append(NEW_SHOT)
-        shots = self.connection.get_shots_by_turns(GAME1_ID, 2)
+        shots = self.connection.get_shots_by_turn(GAME1_ID, 2)
         for shot in shots:
             self.assertIn(shot, new_turn2_shots)
 
