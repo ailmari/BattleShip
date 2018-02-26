@@ -131,7 +131,6 @@ class GameDBTestCase(unittest.TestCase):
         kwargs.pop('end_time')
         new_id = self.connection.create_game(**kwargs)
         game = self.connection.get_game(new_id)
-        print(game)
         for key, value in NEW_GAME.items():
             self.assertEqual(value, game.get(key))
         # Test that the timeformat is correct. Raises error if not.
