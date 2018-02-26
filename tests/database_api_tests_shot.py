@@ -171,6 +171,7 @@ class ShotDBTestCase(unittest.TestCase):
         shots2 = self.connection.get_shots_by_turn(GAME1_ID, 'NONEXISTENT')
         self.assertIsNone(shots2)
 
+    @print_test_info
     def test_create_shot(self):
         '''
         Test create_shot.
@@ -195,6 +196,66 @@ class ShotDBTestCase(unittest.TestCase):
         shots = self.connection.get_shots_by_turn(GAME1_ID, 2)
         for shot in shots:
             self.assertIn(shot, new_turn2_shots)
+
+    @print_test_info
+    def test_create_shot_wrong_ids(self):
+        '''
+        Test create_shot with wrong gameid, playerid and wrong turn.
+        '''
+        turn = NEW_SHOT['turn']
+        playerid = NEW_SHOT['player']
+        gameid = NEW_SHOT['game']
+        x = NEW_SHOT['x']
+        y = NEW_SHOT['y']
+        shot_type = NEW_SHOT['shot_type']
+        success = self.connection.create_shot(
+            turn,
+            playerid,
+            'NONEXISTENT',
+            x,
+            y,
+            shot_type,
+        )
+        self.assertFalse(success)
+        success2 = self.connection.create_shot(
+            turn,
+            'NONEXISTENT',
+            gameid,
+            x,
+            y,
+            shot_type,
+        )
+        self.assertFalse(success2)
+        success3 = self.connection.create_shot(
+            99999,
+            playerid,
+            gameid,
+            x,
+            y,
+            shot_type,
+        )
+        self.assertFalse(success3)
+
+    @print_test_info
+    def test_create_same_shot_twice(self):
+        '''
+        Test create_shot with an existing shot.
+        '''
+        turn = SHOT1P1['turn']
+        playerid = SHOT1P1['player']
+        gameid = SHOT1P1['game']
+        x = SHOT1P1['x']
+        y = SHOT1P1['y']
+        shot_type = SHOT1P1['shot_type']
+        success = self.connection.create_shot(
+            turn,
+            playerid,
+            gameid,
+            x,
+            y,
+            shot_type,
+        )
+        self.assertFalse(success)
 
 
 if __name__ == "__main__":
