@@ -258,6 +258,28 @@ class Connection(object):
                 'y_size': row['y_size'],
                 'turn_length': row['turn_length']}
 
+    def get_games(self):
+        '''
+        Get all games from database.
+        :return: A list with the games, or None if games doesn't exist.
+        '''
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM game'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        cur.execute(query)
+        #Process the response.
+        rows = cur.fetchall()
+        if rows == []:
+            return None
+        #Build the return object
+        games = [dict(row) for row in rows]
+        return games
+			
     def delete_game(self, gameid):
         '''
         Deletes a game with given id from the database.
