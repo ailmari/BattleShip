@@ -12,3 +12,5 @@ INSERT INTO "turn" VALUES(1, 1918, 12345);
 INSERT INTO "turn" VALUES(2, 1919, 12345);
 
 INSERT INTO "shot" VALUES(1, 1919, 12345, 4, 4, "single");
+INSERT INTO "shot" VALUES(1, 1918, 12345, 3, 3, "single");
+INSERT INTO "shot" VALUES(2, 1919, 12345, 5, 4, "single");

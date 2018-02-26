@@ -668,22 +668,92 @@ class Connection(object):
         self.con.commit()
         return True
 
-    # Shot API
-    def get_shot(self):
+   # Shot API
+    def get_shots(self, gameid):
         '''
+        Get all shots of a game.
+        :param int gameid: The id of the game which shots are returned.
+        :return: A list with the shots, or None if ID doesn't exist.
         '''
-        return "Not implemented"
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM shot WHERE game = ?'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        pvalue = (gameid,)
+        cur.execute(query, pvalue)
+        #Process the response.
+        rows = cur.fetchall()
+        if rows == []:
+            return None
+        #Build the return object
+        shots = [dict(row) for row in rows]
+        return shots
 
-    def create_shot(self, turnid, playerid, gameid, x, y, shot_type):
+    def get_shots_by_player(self, playerid, gameid):
+        '''
+        Get all shots shot by a player in a game.
+        :param int gameid: The id of the game in which the player is.
+        :param int playerid: The id of the player whose shots are returned.
+        :return: A list with the shots, or None if ID doesn't exist.
+        '''
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM shot WHERE game = ? AND player = ?'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        pvalue = (gameid, playerid)
+        cur.execute(query, pvalue)
+        #Process the response.
+        rows = cur.fetchall()
+        if rows == []:
+            return None
+        #Build the return object
+        shots = [dict(row) for row in rows]
+        return shots
+
+    def get_shots_by_turn(self, gameid, turn):
+        '''
+        Get all shots of a turn in a game.
+        :param int gameid: The id of the game in which turn is searched from.
+        :param int turn: The turn number.
+        :return: A list with the shots, or None if ID doesn't exist.
+        '''
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM shot WHERE game = ? AND turn = ?'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        pvalue = (gameid, turn)
+        cur.execute(query, pvalue)
+        #Process the response.
+        rows = cur.fetchall()
+        if rows == []:
+            return None
+        #Build the return object
+        shots = [dict(row) for row in rows]
+        return shots
+
+    def create_shot(self, turn, playerid, gameid, x, y, shot_type):
         '''
         Creates a new shot into a game.
 
-        :param int turnid: The number of the turn shot was fired.
+        :param int turn: The number of the turn shot was fired.
         :param int playerid; The id of the player who fired the shot.
         :param int gameid: The id of the game turn shot was fired in.
         :param int x: The x-coordinate of the shot.
         :param int y: The y-coordinate of the shot.
         :param shot_type: Customizable type of the shot (e.g. single or area-of-effect).
+        :return: True if shot was created, False otherwise.
         '''
         #Create the SQL Statement
         stmnt = 'INSERT INTO shot (turn, player, game, x, y, shot_type) \
@@ -694,7 +764,12 @@ class Connection(object):
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
         #Generate the values for SQL statement
-        pvalue = (turnid, playerid, gameid, x, y, shot_type)
+        pvalue = (turn, playerid, gameid, x, y, shot_type)
         #Execute the statement
-        cur.execute(stmnt, pvalue)
+        try:
+            cur.execute(stmnt, pvalue)
+        except sqlite3.Error as e:
+            print("Error %s:" % (e.args[0]))
+            return False
         self.con.commit()
+        return True
