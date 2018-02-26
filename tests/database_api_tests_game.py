@@ -156,7 +156,6 @@ class GameDBTestCase(unittest.TestCase):
         end_time = self.connection.insert_game_end_time(GAME2_ID)
         # Test that the timeformat is correct. Raises error if not.
         datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S.%f')
-        # TODO: add test for response (if there is one)
         game = self.connection.get_game(GAME2_ID)
         for key, value in GAME2.items():
             if key == 'end_time':
