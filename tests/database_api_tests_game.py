@@ -40,14 +40,14 @@ GAME1 = {
 GAME2 = {
     'id': 2,
     'start_time': "2018-2-22 12:40:36.877952",
-    'end_time': "",
+    'end_time': None,
     'x_size': 10,
     'y_size': 10,
     'turn_length': 5,
 }
 NEW_GAME = {
     'id': 12346,
-    'end_time': '',
+    'end_time': None,
     'x_size': 10,
     'y_size': 10,
     'turn_length': 5,
@@ -153,7 +153,9 @@ class GameDBTestCase(unittest.TestCase):
         '''
         Test game_insert_end_time.
         '''
-        response = self.connection.insert_game_end_time(GAME2_ID)
+        end_time = self.connection.insert_game_end_time(GAME2_ID)
+        # Test that the timeformat is correct. Raises error if not.
+        datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S.%f')
         # TODO: add test for response (if there is one)
         game = self.connection.get_game(GAME2_ID)
         for key, value in GAME2.items():
@@ -162,6 +164,22 @@ class GameDBTestCase(unittest.TestCase):
                 datetime.strptime(game['end_time'], '%Y-%m-%d %H:%M:%S.%f')
             else:
                 self.assertEqual(value, game.get(key))
+
+    @print_test_info
+    def test_insert_game_end_time_wrong_id(self):
+        '''
+        Test game_insert_end_time with nonexistent ID.
+        '''
+        end_time = self.connection.insert_game_end_time('NONEXISTENT')
+        self.assertFalse(end_time)
+
+    @print_test_info
+    def test_insert_game_end_time_twice(self):
+        '''
+        Test that you can't insert end_time twice into same game.
+        '''
+        end_time = self.connection.insert_game_end_time(GAME1_ID)
+        self.assertFalse(end_time)
 
 
 if __name__ == "__main__":

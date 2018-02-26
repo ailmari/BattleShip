@@ -299,7 +299,7 @@ class Connection(object):
         cur = self.con.cursor()
         #Generate the values for SQL statement
         start_time = str(datetime.today())
-        pvalue = (None, start_time, '', x_size, y_size, turn_length)
+        pvalue = (None, start_time, None, x_size, y_size, turn_length)
         #Execute the statement
         cur.execute(stmnt, pvalue)
         self.con.commit()
@@ -310,13 +310,13 @@ class Connection(object):
 
     def insert_game_end_time(self, gameid):
         '''
-        Insert end time for a game.
+        Insert end time for a game. Time cannot be set, if game has already ended.
 
         :param int gameid: The id of the game which ended.
-        :return: True if turn was created, False otherwise.
+        :return: End time if success, False if time could not be added.
         '''
         #Create the SQL Query
-        stmnt = 'UPDATE game SET end_time = ? WHERE id = ?'		
+        stmnt = 'UPDATE game SET end_time = ? WHERE id = ? AND end_time is null'
         #Activate foreign key support
         self.set_foreign_keys_support()
         #Cursor and row initialization
@@ -333,7 +333,9 @@ class Connection(object):
             print("Error %s:" % (e.args[0]))
             return False
         self.con.commit()
-        return True
+        # rowcount is 1 if update was successful, 0 if failed
+        success = cur.rowcount
+        return end_time if success else False
 		
     # Player table API
     def get_player(self, playerid, gameid):
