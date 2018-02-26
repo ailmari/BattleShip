@@ -10,14 +10,16 @@ There are many previous implementations for battleships games, but creating a We
 
 ## Depencies
 
-There are no other than standard python modules used. Project have been tested to work with Python 3.5 and 3.6
+There are no other than standard Python modules used. Project have been tested to work with Python 3.5 and Python 3.6
 
 ## Setup and populate database
 
-Populating database is done by calling 'create_tables' from battleship.database.Engine 
-When function is called without argument function populates database with test schema db/battleship_schema_dump.sql
+Populating database is done by calling *create_tables()* from *battleship.database.Engine* 
+When function is called without argument function populates database with test schema *db/battleship_schema_dump.sql*
 
 ## Tests
 
-Unit tests are implemented for each component of API, and they can be found under 'tests'-folder 
-example 'py -m tests.database_api_tests_game'
+Unit tests are implemented for each component of API, and they can be found under *tests* folder 
+
+To run all tests:
+**py -m unittest discover -s "tests" -p "database_api_tests*"**
