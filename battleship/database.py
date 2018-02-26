@@ -308,6 +308,33 @@ class Connection(object):
         #Return the game id
         return id if id is not None else None
 
+    def insert_game_end_time(self, gameid):
+        '''
+        Insert end time for a game.
+
+        :param int gameid: The id of the game which ended.
+        :return: True if turn was created, False otherwise.
+        '''
+        #Create the SQL Query
+        stmnt = 'UPDATE game SET end_time = ? WHERE id = ?'		
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Generate the values for SQL statement
+        end_time = str(datetime.today())
+        #Execute main SQL Statement
+        pvalue = (end_time, gameid)
+        #Execute the statement
+        try:
+            cur.execute(stmnt, pvalue)
+        except sqlite3.Error as e:
+            print("Error %s:" % (e.args[0]))
+            return False
+        self.con.commit()
+        return True
+		
     # Player table API
     def get_player(self, playerid, gameid):
         '''
