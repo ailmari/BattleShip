@@ -26,6 +26,9 @@ from battleship import database
 
 ENGINE = database.Engine('db/battleship_test.db')
 
+GAME1_ID = 12345
+GAME2_ID = 2
+
 GAME1 = {
     'id': 12345,
     'start_time': "2018-2-21 13:40:36.877952",
@@ -34,7 +37,14 @@ GAME1 = {
     'y_size': 10,
     'turn_length': 5,
 }
-
+GAME2 = {
+    'id': 2,
+    'start_time': "2018-2-22 12:40:36.877952",
+    'end_time': "",
+    'x_size': 10,
+    'y_size': 10,
+    'turn_length': 5,
+}
 NEW_GAME = {
     'id': 12346,
     'end_time': '',
@@ -92,8 +102,10 @@ class GameDBTestCase(unittest.TestCase):
         '''
         Test get_game.
         '''
-        game = self.connection.get_game(GAME1['id'])
+        game = self.connection.get_game(GAME1_ID)
         self.assertEqual(game, GAME1)
+        game2 = self.connection.get_game(GAME2_ID)
+        self.assertEqual(game2, GAME2)
 
     @print_test_info
     def test_get_game_wrong_id(self):
@@ -135,6 +147,21 @@ class GameDBTestCase(unittest.TestCase):
             self.assertEqual(value, game.get(key))
         # Test that the timeformat is correct. Raises error if not.
         datetime.strptime(game['start_time'], '%Y-%m-%d %H:%M:%S.%f')
+
+    @print_test_info
+    def test_insert_game_end_time(self):
+        '''
+        Test game_insert_end_time.
+        '''
+        response = self.connection.insert_game_end_time(GAME2_ID)
+        # TODO: add test for response (if there is one)
+        game = self.connection.get_game(GAME2_ID)
+        for key, value in GAME2.items():
+            if key == 'end_time':
+                # Test that the timeformat is correct. Raises error if not.
+                datetime.strptime(game['end_time'], '%Y-%m-%d %H:%M:%S.%f')
+            else:
+                self.assertEqual(value, game.get(key))
 
 
 if __name__ == "__main__":
