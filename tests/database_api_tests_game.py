@@ -45,6 +45,9 @@ GAME2 = {
     'y_size': 10,
     'turn_length': 5,
 }
+
+GAMES = [GAME1, GAME2]
+
 NEW_GAME = {
     'id': 12346,
     'end_time': None,
@@ -106,6 +109,15 @@ class GameDBTestCase(unittest.TestCase):
         self.assertEqual(game, GAME1)
         game2 = self.connection.get_game(GAME2_ID)
         self.assertEqual(game2, GAME2)
+		
+    @print_test_info
+    def test_get_games(self):
+        '''
+        Test get_games.
+        '''
+        games = self.connection.get_games()
+        for game in games:
+            self.assertIn(game, GAMES)
 
     @print_test_info
     def test_get_game_wrong_id(self):

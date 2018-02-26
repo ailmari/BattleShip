@@ -279,7 +279,7 @@ class Connection(object):
         #Build the return object
         games = [dict(row) for row in rows]
         return games
-			
+
     def delete_game(self, gameid):
         '''
         Deletes a game with given id from the database.
