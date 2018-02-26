@@ -15,6 +15,7 @@ There are no other than standard Python modules used. Project have been tested t
 ## Setup and populate database
 
 Populating database is done by calling *create_tables()* from *battleship.database.Engine* 
+
 When function is called without argument function populates database with test schema *db/battleship_schema_dump.sql*
 
 ## Tests
@@ -22,4 +23,4 @@ When function is called without argument function populates database with test s
 Unit tests are implemented for each component of API, and they can be found under *tests* folder 
 
 To run all tests:
-**py -m unittest discover -s "tests" -p "database_api_tests*"**
+py -m unittest discover -s "tests" -p "database_api_tests*"
