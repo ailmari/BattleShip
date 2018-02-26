@@ -56,7 +56,6 @@ NEW_GAME = {
     'turn_length': 5,
 }
 
-
 class GameDBTestCase(unittest.TestCase):
     '''
     Tests for methods that access the game-table.
@@ -109,7 +108,7 @@ class GameDBTestCase(unittest.TestCase):
         self.assertEqual(game, GAME1)
         game2 = self.connection.get_game(GAME2_ID)
         self.assertEqual(game2, GAME2)
-		
+
     @print_test_info
     def test_get_games(self):
         '''

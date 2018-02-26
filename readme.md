@@ -14,7 +14,11 @@ There are no other than standard Python modules used. Project have been tested t
 
 ## Setup and populate database
 
-Populating database is done by calling *create_tables()* from *battleship.database.Engine* 
+Creating database schema is done by calling *create_tables()* from battlsehip.database.Engine*
+
+When function is called without argument function creates database with test schema *db/battleship_schema_dump.sql*
+
+Populating database is done by calling *populate_tables()* from *battleship.database.Engine*
 
 When function is called without argument function populates database with test data *db/battleship_data_dump.sql*
 
