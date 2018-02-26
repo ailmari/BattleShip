@@ -50,8 +50,14 @@ P2TURN2 = {
     'player': 1918,
     'game': 12345,
 }
+NEW_TURN = {
+    'turn_number': 3,
+    'player': 1919,
+    'game': 12345,
+}
 
-GAME1_TURNS = [P1TURN1, P2TURN1, P1TURN2]
+
+GAME1_TURNS = [P1TURN1, P2TURN1, P1TURN2, P2TURN2]
 PLAYER1_TURNS = [P1TURN1, P1TURN2]
 
 
@@ -140,14 +146,14 @@ class TurnDBTestCase(unittest.TestCase):
         Test create_turn.
         '''
         success = self.connection.create_turn(
-            P2TURN2['turn_number'],
-            P2TURN2['player'],
-            P2TURN2['game'],
+            NEW_TURN['turn_number'],
+            NEW_TURN['player'],
+            NEW_TURN['game'],
         )
         self.assertTrue(success)
         turns = self.connection.get_turns(GAME1_ID)
         new_turns = GAME1_TURNS[:]
-        new_turns.append(P2TURN2)
+        new_turns.append(NEW_TURN)
         self.assertEqual(turns, new_turns)
 
     @print_test_info
