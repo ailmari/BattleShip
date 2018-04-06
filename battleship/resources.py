@@ -1,6 +1,6 @@
 '''
-Created on 26.01.2013
-Modified on 05.02.2018
+Created on 06.04.2018
+Modified on 06.04.2018
 @author: arttu
 @author: timo
 @author: niko
@@ -20,6 +20,13 @@ JSON = "application/json"
 BATTLESHIP_GAME_PROFILE = "/profiles/game-profile/"
 BATTLESHIP_PLAYER_PROFILE = "/profiles/player-profile/"
 ERROR_PROFILE = "/profiles/error-profile"
+
+APIARY_PROJECT = "https://battleship.docs.apiary.io"
+APIARY_PROFILES_URL = APIARY_PROJECT+"/#reference/profiles/"
+APIARY_RELS_URL = APIARY_PROJECT+"/#reference/link-relations/"
+
+PLAYER_SCHEMA_URL = "/battleship/schema/player/"
+LINK_RELATIONS_URL = "/battleship/link-relations/"
 
 app = Flask(__name__, static_folder="static", static_url_path="/.")
 app.debug = True
@@ -54,7 +61,7 @@ class MasonObject(dict):
 
         self["@controls"][ctrl_name] = kwargs
 
-#ERROR HANDLERS
+# ERROR HANDLERS
 def create_error_response(status_code, title, message=None):
     resource_url = None
     ctx = _request_ctx_stack.top
@@ -84,12 +91,31 @@ def unknown_error(error):
 def connect_db():
     g.con = app.config["Engine"].connect()
 
-#HOOKS
+# HOOKS
 @app.teardown_request
 def close_connection(exc):
     if hasattr(g, "con"):
         g.con.close()
 
+# RESOURCES
+class Games(Resource):
+    def get(self):
+        games_db = g.con.get_games()
+
+        envelope = BattleshipObject()
+        envelope.add_namespace("battleships", LINK_RELATIONS_URL)
+        envelope.add_control("self", href=api.url_for(Games))
+
+        items = envelope["items"] = []
+
+        for game in games_db:             
+            item = BattleshipObject(id=game["gameid"], headline=game["title"])
+            item.add_control("self", href=api.url_for(Game, gameid=game["gameid"]))
+            item.add_control("profile", href=FORUM_MESSAGE_PROFILE)
+            items.append(item)
+
+        return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
+
 if __name__ == '__main__':
-    #Debug true activates automatic code reloading and improved error messages
+    # Debug true activates automatic code reloading and improved error messages
     app.run(debug=True)
