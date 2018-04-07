@@ -127,6 +127,21 @@ class Game(Resource):
                 resource_url=request.path,
                 resource_id=gameid)
 
+        envelope = MasonObject(
+            id=game_db["id"],
+            start_time=game_db["start_time"],
+            end_time=game_db["end_time"],
+            x_size=game_db["x_size"],
+            y_size=game_db["y_size"],
+            turn_length=game_db["turn_length"]
+        )
+        envelope.add_namespace("battleship", LINK_RELATIONS_URL)
+        envelope.add_control("profile", href=BATTLESHIP_GAME_PROFILE)
+        envelope.add_control("self", href=api.url_for(Game, gameid=gameid))
+        envelope.add_control("collection", href=api.url_for(Games))
+
+        return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
+
 class Players(Resource):
     def get(self, gameid):
         game_db = g.con.get_game(gameid)
@@ -148,18 +163,21 @@ class Players(Resource):
         envelope = MasonObject()
         envelope.add_namespace("battleship", LINK_RELATIONS_URL)
         envelope.add_control("self", href=api.url_for(Players, gameid=gameid))
+        envelope.add_control("game", href=api.url_for(Game, gameid=gameid))
 
         items = envelope["items"] = []
 
         for player in players_db:
             item = MasonObject(
-                nickname=player["nickname"]
+                id=player["id"],
+                nickname=player["nickname"],
+                game=player["game"]
             )
             item.add_control("self", href=api.url_for(Player, playerid=player["id"], gameid=gameid))
             item.add_control("profile", href=BATTLESHIP_PLAYER_PROFILE)
+            item.add_control("game", href=api.url_for(Game, gameid=gameid))
             items.append(item)
 
-        #RENDER
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_PLAYER_PROFILE)
         
 class Player(Resource):
@@ -171,6 +189,19 @@ class Player(Resource):
                 resource_type="Player",
                 resource_url=request.path,
                 resource_id=playerid)
+
+        envelope = MasonObject(
+            id=player_db["id"],
+            nickname=player_db["nickname"],
+            game=player_db["game"]
+        )
+        envelope.add_namespace("battleship", LINK_RELATIONS_URL)
+        envelope.add_control("self", href=api.url_for(Player, playerid=playerid, gameid=gameid))
+        envelope.add_control("profile", href=BATTLESHIP_PLAYER_PROFILE)
+        envelope.add_control("collection", href=api.url_for(Players, gameid=gameid))
+        envelope.add_control("game", href=api.url_for(Game, gameid=gameid))
+
+        return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_PLAYER_PROFILE)
 
 # ROUTES
 app.url_map.converters["regex"] = RegexConverter
