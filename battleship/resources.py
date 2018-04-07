@@ -13,6 +13,7 @@ from flask import Flask, request, Response, g, _request_ctx_stack, redirect, sen
 from flask_restful import Resource, Api, abort
 from werkzeug.exceptions import NotFound,  UnsupportedMediaType
 
+from battleship.utils import RegexConverter
 from battleship import database
 
 MASON = "application/vnd.mason+json"
@@ -75,17 +76,17 @@ def create_error_response(status_code, title, message=None):
 @app.errorhandler(404)
 def resource_not_found(error):
     return create_error_response(404, "Resource not found",
-                                 "Thundering typhoons! This crooking resource url does not exist!")
+        "Thundering typhoons! This crooking resource url does not exist!")
 
 @app.errorhandler(400)
 def resource_not_found(error):
     return create_error_response(400, "Malformed input format",
-                                 "Billions of bilious blue blistering barnacles! The heretic format of the input is incorrect!")
+        "Billions of bilious blue blistering barnacles! The heretic format of the input is incorrect!")
 
 @app.errorhandler(500)
 def unknown_error(error):
     return create_error_response(500, "Error",
-                    "Billions of blue blistering boiled and barbecued barnacles in a thundering typhoon! The bloodsucking system has failed!")
+        "Billions of blue blistering boiled and barbecued barnacles in a thundering typhoon! The bloodsucking system has failed!")
 
 @app.before_request
 def connect_db():
@@ -102,19 +103,25 @@ class Games(Resource):
     def get(self):
         games_db = g.con.get_games()
 
-        envelope = BattleshipObject()
-        envelope.add_namespace("battleships", LINK_RELATIONS_URL)
+        envelope = MasonObject()
+        envelope.add_namespace("battleship", LINK_RELATIONS_URL)
         envelope.add_control("self", href=api.url_for(Games))
 
         items = envelope["items"] = []
 
         for game in games_db:             
-            item = BattleshipObject(id=game["gameid"], headline=game["title"])
-            item.add_control("self", href=api.url_for(Game, gameid=game["gameid"]))
-            item.add_control("profile", href=FORUM_MESSAGE_PROFILE)
+            item = MasonObject(id=game["id"])
+            #item.add_control("self", href=api.url_for(Game, gameid=game["gameid"]))
+            item.add_control("profile", href=BATTLESHIP_GAME_PROFILE)
             items.append(item)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
+
+# ROUTES
+app.url_map.converters["regex"] = RegexConverter
+
+api.add_resource(Games, "/battleship/api/games/",
+                 endpoint="games")
 
 if __name__ == '__main__':
     # Debug true activates automatic code reloading and improved error messages
