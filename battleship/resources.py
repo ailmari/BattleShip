@@ -224,7 +224,41 @@ class Players(Resource):
             items.append(item)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_PLAYER_PROFILE)
+    
+    def post(self, gameid):
+        if JSON != request.headers.get("Content-Type", ""):
+            abort(415)
+
+        game_db = g.con.get_game(gameid)
+        if not game_db:
+            abort(404, message="There is no game with id %s" % gameid,
+                resource_type="Game",
+                resource_url=request.path,
+                resource_id=gameid)
+
+        request_body = request.get_json(force=True)
+        if not request_body:
+            return create_error_response(415, "Unsupported Media Type", "Use a JSON compatible format")
+
+        try:
+            playerid = request_body["id"]
+        except KeyError:
+            return create_error_response(400, "Wrong request format", "Player id is missing from the request!")
         
+        try:
+            nickname = request_body["nickname"]
+        except KeyError:
+            nickname = "Anonymous landlubber"
+
+        playerid = g.con.create_player(playerid, nickname, gameid)
+        if not playerid:
+            return create_error_response(500, "Problem with the database",
+                "Thousand thundering typhoons! Cannot access the database!")
+
+        url = api.url_for(Player, playerid=playerid, gameid=gameid)
+
+        return Response(status=201, headers={"Location": url})
+    
 class Player(Resource):
     def get(self, playerid, gameid):
         player_db = g.con.get_player(playerid, gameid)
