@@ -20,7 +20,9 @@ MASON = "application/vnd.mason+json"
 JSON = "application/json"
 BATTLESHIP_GAME_PROFILE = "/profiles/game-profile/"
 BATTLESHIP_PLAYER_PROFILE = "/profiles/player-profile/"
-ERROR_PROFILE = "/profiles/error-profile"
+BATTLESHIP_SHIP_PROFILE = "/profiles/ship-profile/"
+BATTLESHIP_SHOT_PROFILE = "/profiles/shot-profile/"
+ERROR_PROFILE = "/profiles/error-profile/"
 
 APIARY_PROJECT = "https://battleship.docs.apiary.io"
 APIARY_PROFILES_URL = APIARY_PROJECT+"/#reference/profiles/"
@@ -35,13 +37,6 @@ app.config.update({"Engine": database.Engine()})
 api = Api(app)
 
 class MasonObject(dict):
-    """
-    A convenience class for managing dictionaries that represent Mason
-    objects. It provides nice shorthands for inserting some of the more
-    elements into the object but mostly is just a parent for the much more
-    useful subclass defined next. This class is generic in the sense that it
-    does not contain any application specific implementation details.
-    """
     def add_error(self, title, details):
         self["@error"] = {
             "@message": title,
@@ -117,6 +112,29 @@ class Games(Resource):
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
 
+    def post(self):
+        if MASON != request.headers.get("Content-Type",""):
+            return create_error_response(415, "UnsupportedMediaType",
+                                         "Macrocephalic baboon! Use a JSON compatible format!")
+        request_body = request.get_json(force=True)
+
+        try:            
+            x_size = request_body["x_size"]            
+            y_size = request_body["y_size"]
+            turn_length = request_body["turn_length"]
+        except KeyError:
+            return create_error_response(400, "Wrong request format",
+                "Toffee-nose! Include x_size, y_size and turn_length for the game!")
+
+        gameid = g.con.create_game(x_size, y_size, turn_length)
+        if not gameid:
+            return create_error_response(500, "Problem with the database",
+                "Thousand thundering typhoons! Cannot access the database!")
+
+        url = api.url_for(Game, gameid=gameid)
+
+        return Response(status=201, headers={"Location": url})
+
 class Game(Resource):
     def get(self, gameid):
         game_db = g.con.get_game(gameid)
@@ -141,6 +159,33 @@ class Game(Resource):
         envelope.add_control("collection", href=api.url_for(Games))
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
+
+    def patch(self, gameid):
+        game_db = g.con.get_game(gameid)
+
+        if not game_db:
+            abort(404, message="Vegetarian! There is no game with id %s!" % gameid,
+                resource_type="Game",
+                resource_url=request.path,
+                resource_id=gameid)
+
+        if game_db["end_time"] != None:
+            abort(409, message="Baboon! The game has already ended!",
+                resource_type="Game",
+                resource_url=request.path,
+                resource_id=gameid)
+
+        g.con.insert_game_end_time(gameid)
+
+        url = api.url_for(Game, gameid=gameid)
+
+        return Response(status=204)
+
+    def delete(self, gameid):
+        if g.con.delete_game(gameid):
+            return Response(status=204)
+        else:
+            return create_error_response(404, "Unknown game", "There is no game with id %s" % gameid)
 
 class Players(Resource):
     def get(self, gameid):
@@ -203,6 +248,97 @@ class Player(Resource):
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_PLAYER_PROFILE)
 
+class Ships(Resource):
+    def get(self, playerid, gameid):
+        game_db = g.con.get_game(gameid)
+
+        if not game_db:
+            abort(404, message="There is no game with id %s" % gameid,
+                resource_type="Game",
+                resource_url=request.path,
+                resource_id=gameid)
+
+        player_db = g.con.get_player(playerid, gameid)
+
+        if not player_db:
+            abort(404, message="There is no player with id %s" % playerid,
+                resource_type="Player",
+                resource_url=request.path,
+                resource_id=playerid)
+
+        ships_db = g.con.get_ships_by_player(gameid, playerid)
+
+        if not ships_db:
+            abort(404, message="There are no ships owned by player with id %s" % playerid,
+                resource_type="Ships",
+                resource_url=request.path,
+                resource_id=playerid)
+
+        envelope = MasonObject()
+        envelope.add_namespace("battleship", LINK_RELATIONS_URL)
+        envelope.add_control("self", href=api.url_for(Ships, playerid=playerid, gameid=gameid))
+        envelope.add_control("game", href=api.url_for(Game, gameid=gameid))
+        envelope.add_control("player", href=api.url_for(Player, playerid=playerid, gameid=gameid))
+
+        items = envelope["items"] = []
+
+        for ship in ships_db:
+            item = MasonObject(
+                id=ship["id"],
+                player=ship["player"],
+                game=ship["game"],
+                stern_x=ship["stern_x"],
+                stern_y=ship["stern_y"],
+                bow_x=ship["bow_x"],
+                bow_y=ship["bow_y"],
+                ship_type=ship["ship_type"]
+            )
+            item.add_control("self", href=api.url_for(Ships, playerid=playerid, gameid=gameid))
+            item.add_control("profile", href=BATTLESHIP_SHIP_PROFILE)
+            items.append(item)
+
+        return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_SHIP_PROFILE)
+
+class Shots(Resource):
+    def get(self, gameid):
+        game_db = g.con.get_game(gameid)
+
+        if not game_db:
+            abort(404, message="There is no game with id %s" % gameid,
+                resource_type="Game",
+                resource_url=request.path,
+                resource_id=gameid)
+
+        shots_db = g.con.get_shots(gameid)
+
+        if not shots_db:
+            abort(404, message="There are no shots in game with id %s" % gameid,
+                resource_type="Shots",
+                resource_url=request.path,
+                resource_id=gameid)
+
+        envelope = MasonObject()
+        envelope.add_namespace("battleship", LINK_RELATIONS_URL)
+        envelope.add_control("self", href=api.url_for(Shots, gameid=gameid))
+        envelope.add_control("game", href=api.url_for(Game, gameid=gameid))
+
+        items = envelope["items"] = []
+
+        for shot in shots_db:
+            item = MasonObject(
+                turn=shot["turn"],
+                player=shot["player"],
+                game=shot["game"],
+                x=shot["x"],
+                y=shot["y"],
+                shot_type=shot["shot_type"]
+            )
+            item.add_control("self", href=api.url_for(Shots, gameid=gameid))
+            item.add_control("profile", href=BATTLESHIP_SHOT_PROFILE)
+            items.append(item)
+
+        return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_SHOT_PROFILE)
+
 # ROUTES
 app.url_map.converters["regex"] = RegexConverter
 
@@ -214,6 +350,9 @@ api.add_resource(Players, "/battleship/api/games/<gameid>/players/",
     endpoint="players")
 api.add_resource(Player, "/battleship/api/games/<gameid>/players/<playerid>/",
     endpoint="player")
+api.add_resource(Ships, "/battleship/api/games/<gameid>/players/<playerid>/ships/",
+    endpoint="ships")
+api.add_resource(Shots, "/battleship/api/games/<gameid>/shots/")
 
 if __name__ == '__main__':
     # Debug true activates automatic code reloading and improved error messages
