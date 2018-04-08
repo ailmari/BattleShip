@@ -431,7 +431,7 @@ class Connection(object):
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
         #Generate the values for SQL statement
-        start_time = str(datetime.today())
+        #lastplayerid = cur.lastrowid
         pvalue = (playerid, nickname, gameid)
         #Execute the statement
         try:

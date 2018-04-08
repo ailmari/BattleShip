@@ -104,11 +104,12 @@ class Games(Resource):
 
         items = envelope["items"] = []
 
-        for game in games_db:             
-            item = MasonObject(id=game["id"])
-            item.add_control("self", href=api.url_for(Game, gameid=game["id"]))
-            item.add_control("profile", href=BATTLESHIP_GAME_PROFILE)
-            items.append(item)
+        for game in games_db:
+            if game["end_time"] == None:
+                item = MasonObject(id=game["id"])
+                item.add_control("self", href=api.url_for(Game, gameid=game["id"]))
+                item.add_control("profile", href=BATTLESHIP_GAME_PROFILE)
+                items.append(item)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
 
@@ -118,8 +119,8 @@ class Games(Resource):
                                          "Macrocephalic baboon! Use a JSON compatible format!")
         request_body = request.get_json(force=True)
 
-        try:            
-            x_size = request_body["x_size"]            
+        try:
+            x_size = request_body["x_size"]
             y_size = request_body["y_size"]
             turn_length = request_body["turn_length"]
         except KeyError:
@@ -169,23 +170,39 @@ class Game(Resource):
                 resource_url=request.path,
                 resource_id=gameid)
 
-        if game_db["end_time"] != None:
+        if g.con.insert_game_end_time(gameid):
+            url = api.url_for(Game, gameid=gameid)
+            return Response(status=204)
+        else:
             abort(409, message="Baboon! The game has already ended!",
                 resource_type="Game",
                 resource_url=request.path,
                 resource_id=gameid)
-
-        g.con.insert_game_end_time(gameid)
-
-        url = api.url_for(Game, gameid=gameid)
-
-        return Response(status=204)
 
     def delete(self, gameid):
         if g.con.delete_game(gameid):
             return Response(status=204)
         else:
             return create_error_response(404, "Unknown game", "There is no game with id %s" % gameid)
+
+class History(Resource):
+    def get(self):
+        games_db = g.con.get_games()
+
+        envelope = MasonObject()
+        envelope.add_namespace("battleship", LINK_RELATIONS_URL)
+        envelope.add_control("self", href=api.url_for(History))
+
+        items = envelope["items"] = []
+
+        for game in games_db:
+            if game["end_time"] != None:
+                item = MasonObject(id=game["id"])
+                item.add_control("self", href=api.url_for(Game, gameid=game["id"]))
+                item.add_control("profile", href=BATTLESHIP_GAME_PROFILE)
+                items.append(item)
+
+        return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
 
 class Players(Resource):
     def get(self, gameid):
@@ -250,14 +267,12 @@ class Players(Resource):
         except KeyError:
             nickname = "Anonymous landlubber"
 
-        playerid = g.con.create_player(playerid, nickname, gameid)
-        if not playerid:
+        if g.con.create_player(playerid, nickname, gameid):
+            url = api.url_for(Player, playerid=playerid, gameid=gameid)
+            return Response(status=201, headers={"Location": url})
+        else:
             return create_error_response(500, "Problem with the database",
                 "Thousand thundering typhoons! Cannot access the database!")
-
-        url = api.url_for(Player, playerid=playerid, gameid=gameid)
-
-        return Response(status=201, headers={"Location": url})
     
 class Player(Resource):
     def get(self, playerid, gameid):
@@ -281,6 +296,12 @@ class Player(Resource):
         envelope.add_control("game", href=api.url_for(Game, gameid=gameid))
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_PLAYER_PROFILE)
+
+    def delete(self, playerid, gameid):
+        if g.con.delete_player(playerid, gameid):
+            return Response(status=204)
+        else:
+            return create_error_response(404, "Unknown player or game")
 
 class Ships(Resource):
     def get(self, playerid, gameid):
@@ -333,6 +354,37 @@ class Ships(Resource):
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_SHIP_PROFILE)
 
+    def put(self, playerid, gameid):
+        if JSON != request.headers.get("Content-Type", ""):
+            abort(415)
+
+        game_db = g.con.get_game(gameid)
+        if not game_db:
+            abort(404, message="There is no game with id %s" % gameid,
+                resource_type="Game",
+                resource_url=request.path,
+                resource_id=gameid)
+
+        request_body = request.get_json(force=True)
+        if not request_body:
+            return create_error_response(415, "Unsupported Media Type", "Use a JSON compatible format")
+
+        try:
+            shipid=request_body["shipid"]
+            stern_x=request_body["stern_x"]
+            stern_y=request_body["stern_y"]
+            bow_x=request_body["bow_x"]
+            bow_y=request_body["bow_y"]
+            ship_type=request_body["ship_type"]
+        except KeyError:
+            return create_error_response(400, "Wrong request format", "Include all parameters in the request!")
+
+        if g.con.create_ship(shipid, playerid, gameid, stern_x, stern_y, bow_x, bow_y, ship_type):
+            return Response(status=204)
+        else:
+            return create_error_response(500, "Problem with the database",
+                "Thousand thundering typhoons! Cannot access the database!")
+
 class Shots(Resource):
     def get(self, gameid):
         game_db = g.con.get_game(gameid)
@@ -373,6 +425,36 @@ class Shots(Resource):
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_SHOT_PROFILE)
 
+    def post(self, gameid):
+        if JSON != request.headers.get("Content-Type", ""):
+            abort(415)
+
+        game_db = g.con.get_game(gameid)
+        if not game_db:
+            abort(404, message="There is no game with id %s" % gameid,
+                resource_type="Game",
+                resource_url=request.path,
+                resource_id=gameid)
+
+        request_body = request.get_json(force=True)
+        if not request_body:
+            return create_error_response(415, "Unsupported Media Type", "Use a JSON compatible format")
+
+        try:
+            turn = request_body["turn"]
+            playerid = request_body["playerid"]
+            x = request_body["x"]
+            y = request_body["y"]
+            shot_type = request_body["shot_type"]
+        except KeyError:
+            return create_error_response(400, "Wrong request format", "Include all parameters in the request!")
+
+        if g.con.create_shot(turn, playerid, gameid, x, y, shot_type):
+            return Response(status=204)
+        else:
+            return create_error_response(500, "Problem with the database",
+                "Thousand thundering typhoons! Cannot access the database!")
+
 # ROUTES
 app.url_map.converters["regex"] = RegexConverter
 
@@ -380,13 +462,16 @@ api.add_resource(Games, "/battleship/api/games/",
     endpoint="games")
 api.add_resource(Game, "/battleship/api/games/<gameid>/",
     endpoint="game")
+api.add_resource(History, "/battleship/api/history/",
+    endpoint="history")
 api.add_resource(Players, "/battleship/api/games/<gameid>/players/",
     endpoint="players")
 api.add_resource(Player, "/battleship/api/games/<gameid>/players/<playerid>/",
     endpoint="player")
 api.add_resource(Ships, "/battleship/api/games/<gameid>/players/<playerid>/ships/",
     endpoint="ships")
-api.add_resource(Shots, "/battleship/api/games/<gameid>/shots/")
+api.add_resource(Shots, "/battleship/api/games/<gameid>/shots/",
+    endpoint="shots")
 
 if __name__ == '__main__':
     # Debug true activates automatic code reloading and improved error messages
