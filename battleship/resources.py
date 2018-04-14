@@ -253,6 +253,9 @@ class Players(Resource):
                 resource_url=request.path,
                 resource_id=gameid)
 
+        if game_db["end_time"] != None:
+            abort(400, message="Cannot join game which has ended!")
+
         request_body = request.get_json(force=True)
         if not request_body:
             return create_error_response(415, "Unsupported Media Type", "Use a JSON compatible format")

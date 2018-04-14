@@ -19,6 +19,7 @@ Based on course exercises code by:
 
 import unittest
 import flask
+import json
 from battleship import database
 from battleship import resources
 
@@ -26,15 +27,24 @@ ENGINE = database.Engine('db/battleship_test.db')
 
 MASONJSON = "application/vnd.mason+json"
 JSON = "application/json"
+BATTLESHIP_GAME_PROFILE = "/profiles/game-profile/"
 
 resources.app.config["TESTING"] = True
 resources.app.config["SERVER_NAME"] = "localhost:5000"
 resources.app.config.update({"Engine": ENGINE})
 
-class GameResourceTestCase(unittest.TestCase):
+url = "/battleship/api/history/"
+
+class HistoryResourceTestCase(unittest.TestCase):
     '''
-    Tests for methods that access the Games and Games resources.
+    Tests for methods that access the Games resource.
     '''
+    create_game_request_1 = {
+        "x_size": "8",
+        "y_size": "8",
+        "turn_length": "3",
+    }
+
     @classmethod
     def setUpClass(cls):
         ''' Creates the database structure. Removes first any preexisting
@@ -47,7 +57,7 @@ class GameResourceTestCase(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         '''Remove the testing database'''
-        print("Testing ENDED for ", cls.__name__)
+        print("\nTesting ENDED for ", cls.__name__)
         ENGINE.remove_database()
 
     def setUp(self):
@@ -74,31 +84,55 @@ class GameResourceTestCase(unittest.TestCase):
 
     def print_test_info(function):
         def wrapped_function(self):
-            print('(' + function.__name__ + ')', function.__doc__)
+            print('\n(' + function.__name__ + ')', function.__doc__)
             function(self)
         return wrapped_function
 
     @print_test_info
-    def test_url(self):
+    def test_history_url(self):
         """
         Checks that the URL points to the right resource
         """
-        url = "/battleship/api/games/12345/"
-        print("("+self.test_url.__name__+")", self.test_url.__doc__, end=' ')
         with resources.app.test_request_context(url):
             rule = flask.request.url_rule
             view_point = resources.app.view_functions[rule.endpoint].view_class
-            self.assertEqual(view_point, resources.Game)
+            self.assertEqual(view_point, resources.History)
 
     @print_test_info
-    def test_get_game(self):
+    def test_get_history(self):
         """
-        Checks that GET Game return correct status code and data format
+        Checks that GET History returns correct status code and data format
         """
-        #Check that I receive status code 200
-        resp = self.client.get(flask.url_for("game"))
+        # Check that I receive status code 200
+        resp = self.client.get(flask.url_for("history"))
         self.assertEqual(resp.status_code, 200)
 
+        # Check thant headers are correct
+        self.assertEqual(resp.headers.get("Content-Type",None),
+                          "{};{}".format(MASONJSON, BATTLESHIP_GAME_PROFILE))
+
+        # Check that I receive a collection and adequate href
+        data = json.loads(resp.data.decode("utf-8"))
+
+        # Check namespaces
+        namespaces = data["@namespaces"]
+        self.assertIn("battleship", namespaces)
+        self.assertIn("name", namespaces["battleship"])
+
+        # Check controls
+        controls = data["@controls"]
+        self.assertIn("self", controls)
+        self.assertIn("href", controls["self"])
+        self.assertEqual(controls["self"]["href"], url)
+
+        items = data["items"]
+        for item in items:
+            self.assertIn("id", item)
+            self.assertIn("@controls", item)
+            self.assertIn("self", item["@controls"])
+            self.assertIn("href", item["@controls"]["self"])
+            self.assertIn("profile", item["@controls"])
+
 if __name__ == "__main__":
-    print("Starting resources game tests...")
+    print("Starting resources games tests...")
     unittest.main()
