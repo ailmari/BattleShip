@@ -27,8 +27,9 @@ from battleship import database
 ENGINE = database.Engine('db/battleship_test.db')
 
 GAME1_ID = 12345
-PLAYER1_ID = 1919
-PLAYER2_ID = 1918
+PLAYER1_ID = 1
+PLAYER2_ID = 2
+PLAYER3_ID = 3
 
 SHOT1P1 = {
     'turn': 1,
@@ -43,6 +44,14 @@ SHOT1P2 = {
     'player': PLAYER2_ID,
     'game': GAME1_ID,
     'x': 3,
+    'y': 3,
+    'shot_type': 'single',
+}
+SHOT1P3 = {
+    'turn': 1,
+    'player': PLAYER3_ID,
+    'game': GAME1_ID,
+    'x': 2,
     'y': 3,
     'shot_type': 'single',
 }
@@ -63,10 +72,11 @@ NEW_SHOT = {
     'shot_type': 'single',
 }
 
-GAME1_SHOTS = [SHOT1P1, SHOT1P2, SHOT2P1]
+GAME1_SHOTS = [SHOT1P1, SHOT1P2, SHOT1P3, SHOT2P1]
 PLAYER1_SHOTS = [SHOT1P1, SHOT2P1]
 PLAYER2_SHOTS = [SHOT1P2]
-TURN1_SHOTS = [SHOT1P1, SHOT1P2]
+PLAYER3_SHOTS = [SHOT1P3]
+TURN1_SHOTS = [SHOT1P1, SHOT1P2, SHOT1P3]
 TURN2_SHOTS = [SHOT2P1]
 
 
