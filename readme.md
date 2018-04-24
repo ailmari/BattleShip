@@ -26,7 +26,12 @@ When function is called without argument function populates database with test d
 
 Unit tests are implemented for each component of API, and they can be found under *tests* folder 
 
-To run all tests:
+To run all database tests:
 ```
 py -m unittest discover -s "tests" -p "database_api_tests*"
+```
+
+To run all resources tests:
+```
+py -m unittest discover -s "tests" -p "resources_api_tests*"
 ```

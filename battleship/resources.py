@@ -37,6 +37,9 @@ app.config.update({"Engine": database.Engine()})
 api = Api(app)
 
 class MasonObject(dict):
+    '''
+    Parent class for resources. Adds generic attributes.
+    '''
     def add_error(self, title, details):
         self["@error"] = {
             "@message": title,
@@ -95,7 +98,22 @@ def close_connection(exc):
 
 # RESOURCES
 class Games(Resource):
+    '''
+    Games resource iplementation.
+    '''
     def get(self):
+        '''
+        Get all Games which have not ended.
+
+        INPUT PARAMETERS:
+            None
+
+        RESPONSE ENTITY BODY:
+            * Media type: Mason
+            https://github.com/JornWildt/Mason
+            * Profile: Battleship_Game
+            /profiles/game-profile
+        '''
         games_db = g.con.get_games()
 
         envelope = MasonObject()
@@ -114,6 +132,32 @@ class Games(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
 
     def post(self):
+        '''
+        Creates a new Game.
+
+        REQUEST ENTITY BODY:
+            * Media type: MASON:
+            * Profile: Battleship_Game
+                /profiles/game-profile
+
+        INPUT PARAMETERS:
+            :param int x_size: Number of columns for the game map.
+            :param int y_size: Number of rows for the game map.
+            :param int turn_length: Turn length in seconds.
+
+        RESPONSE ENTITY BODY:
+            * Media type: Mason
+                https://github.com/JornWildt/Mason
+            * Profile: Battleship_Game
+                /profiles/game_profile
+
+        RESPONSE STATUS CODE:
+            * Returns 201 if game was created succesfully.
+                The Location header contains the path of the new game.
+            * Returns 400 if the game is in wrong format, e.g. parameters are missing.
+            * Returns 415 if the format of the request is not mason.
+            * Returns 500 if the game could not be added to database.
+        '''
         if MASON != request.headers.get("Content-Type",""):
             return create_error_response(415, "UnsupportedMediaType",
                                          "Macrocephalic baboon! Use a JSON compatible format!")
@@ -137,7 +181,20 @@ class Games(Resource):
         return Response(status=201, headers={"Location": url})
 
 class Game(Resource):
+    '''
+    Game resource implementation.
+    '''
     def get(self, gameid):
+        '''
+        Get id, start time, end time, map size and turn length of a single game.
+
+        INPUT PARAMETERS:
+            :param int gameid: ID of the game.
+
+        RESPONSE STATUS CODE
+            * Return status code 200 if game was retrieved succesfully.
+            * Return status code 404 if the game was not found in the database.
+        '''
         game_db = g.con.get_game(gameid)
 
         if not game_db:
@@ -162,6 +219,18 @@ class Game(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
 
     def patch(self, gameid):
+        '''
+        End a game.
+        More specifically, patches a game's end time with timestamp of when this command was received.
+
+        INPUT PARAMETERS:
+            :param int gameid: ID of the game.
+
+        RESPONSE STATUS CODE
+            * Return status code 200 if game was found and ended succesfully.
+            * Return status code 404 if the game was not found in the database.
+            * Return status code 409 if the game has already ended.
+        '''
         game_db = g.con.get_game(gameid)
 
         if not game_db:
@@ -180,13 +249,38 @@ class Game(Resource):
                 resource_id=gameid)
 
     def delete(self, gameid):
+        '''
+        Delete a game from the database.
+
+        INPUT PARAMETERS:
+            :param int gameid: ID of the game.
+
+        RESPONSE STATUS CODE
+            * Return status code 204 if game was deleted succesfully.
+            * Return status code 404 if the game was not found in the database.
+        '''
         if g.con.delete_game(gameid):
             return Response(status=204)
         else:
             return create_error_response(404, "Unknown game", "There is no game with id %s" % gameid)
 
 class History(Resource):
+    '''
+    History resource implementation.
+    '''
     def get(self):
+        '''
+        Get IDs of all Games which have ended.
+
+        INPUT PARAMETERS:
+            None
+
+        RESPONSE ENTITY BODY:
+            * Media type: Mason
+            https://github.com/JornWildt/Mason
+            * Profile: Battleship_History
+            /profiles/history-profile
+        '''
         games_db = g.con.get_games()
 
         envelope = MasonObject()
@@ -205,7 +299,29 @@ class History(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
 
 class Players(Resource):
+    '''
+    Player resource implementation.
+    '''
     def get(self, gameid):
+        '''
+        Get all Players in a Game.
+
+        INPUT PARAMETERS:
+            :param int gameid: ID of the Game.
+
+        REQUEST ENTITY BODY:
+            * Media type: MASON
+
+        OUTPUT:
+            * Returns 200 if the game was found and players retrieved succesfully.
+            * Returns 404 if there is no game with gameid or the game has no players.
+
+        RESPONSE ENTITY BODY:
+            * Media type: Mason
+            https://github.com/JornWildt/Mason
+            * Profile: Battleship_Player
+            /profiles/player-profile
+        '''
         game_db = g.con.get_game(gameid)
 
         if not game_db:
@@ -243,6 +359,33 @@ class Players(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_PLAYER_PROFILE)
     
     def post(self, gameid):
+        '''
+        Creates a new Player and adds it to a Game.
+
+        REQUEST ENTITY BODY:
+            * Media type: JSON:
+            * Profile: Battleship_Player
+                /profiles/player-profile
+
+        INPUT PARAMETERS:
+            :param int gameid: ID of the Game to join.
+            :param int playerid: ID for the Player. TODO increment this automatically!
+            :param str nickname: Nickname for the Player. If empty, defaults to Anonymous Landlubber.
+
+        RESPONSE ENTITY BODY:
+            * Media type: Mason
+                https://github.com/JornWildt/Mason
+            * Profile: Battleship_Player
+                /profiles/player-profile
+
+        RESPONSE STATUS CODE:
+            * Returns 201 if the Player was created succesfully.
+                The Location header contains the path of the new Player.
+            * Returns 400 if the game has ended, thus cannot be joined.
+            * Returns 415 if the format of the request is not json or the body is not in correct format.
+            * Returns 404 if the game cannot be found in the database.
+            * Returns 500 if the player could not be added to database.
+        '''
         if JSON != request.headers.get("Content-Type", ""):
             abort(415)
 
@@ -278,7 +421,22 @@ class Players(Resource):
                 "Thousand thundering typhoons! Cannot access the database!")
     
 class Player(Resource):
+    '''
+    Player resource iplementation.
+    '''
     def get(self, playerid, gameid):
+        '''
+        Get id, nickname of a player.
+        Get also the gameid which the player belongs to.
+
+        INPUT PARAMETERS:
+            :param int playerid: ID of the player.
+            :param int gameid: ID of the game.
+
+        RESPONSE STATUS CODE
+            * Return status code 200 if player was retrieved succesfully.
+            * Return status code 404 if the player was not found in database.
+        '''
         player_db = g.con.get_player(playerid, gameid)
 
         if not player_db:
@@ -301,13 +459,39 @@ class Player(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_PLAYER_PROFILE)
 
     def delete(self, playerid, gameid):
+        '''
+        Delete a player from the database.
+
+        INPUT PARAMETERS:
+            :param int playerid: ID of the player.
+            :param int gameid: ID of the game.
+
+        RESPONSE STATUS CODE
+            * Return status code 204 if player was deleted succesfully.
+            * Return status code 404 if the player or the game were not found in the database.
+        '''
         if g.con.delete_player(playerid, gameid):
             return Response(status=204)
         else:
             return create_error_response(404, "Unknown player or game")
 
 class Ships(Resource):
+    '''
+    Ships resource implementation.
+    '''
     def get(self, playerid, gameid):
+        '''
+        Get list of ships belonging to a player in a game.
+
+        INPUT PARAMETERS:
+            :param int playerid: ID of the player.
+            :param int gameid: ID of the game.
+
+        RESPONSE STATUS CODE
+            * Return status code 200 if player was retrieved succesfully.
+            * Return status code 404 if the player or the game was not found in the database
+                or the player has no ships.
+        '''
         game_db = g.con.get_game(gameid)
 
         if not game_db:
@@ -358,6 +542,26 @@ class Ships(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_SHIP_PROFILE)
 
     def put(self, playerid, gameid):
+        '''
+        Place a ship for a player in a game.
+        TODO add logic to place all / multiple ships etc.
+
+        INPUT PARAMETERS:
+            :param int playerid: ID of the player.
+            :param int gameid: ID of the game.
+            :param int shipid: ID of the ship. TODO increment this automatically.
+            :param int stern_x: Column of the ship stern.
+            :param int stern_y: Row of the ship stern.
+            :param int bow_x: Column of the ship bow.
+            :param int bow_y: Row of the ship bow.
+            :param str ship_type: Type of the ship. Can be used to implement ship specific gameplay mechanics.
+
+        RESPONSE STATUS CODE
+            * Return status code 204 if ship was created succesfully.
+            * Return status code 415 if the request is not JSON or the request format is incorrect.
+            * Return status code 400 if parameters are missing.
+            * Return status code 500 if the ship could not be created in the database.
+        '''
         if JSON != request.headers.get("Content-Type", ""):
             abort(415)
 
@@ -389,7 +593,21 @@ class Ships(Resource):
                 "Thousand thundering typhoons! Cannot access the database!")
 
 class Shots(Resource):
+    '''
+    Shots resource implementation.
+    '''
     def get(self, gameid):
+        '''
+        Get list of shots fired in a game.
+
+        INPUT PARAMETERS:
+            :param int gameid: ID of the game.
+
+        RESPONSE STATUS CODE
+            * Return status code 200 if shots were retrieved succesfully.
+            * Return status code 404 if the game was not found in the database
+                or the game has no shots fired.
+        '''
         game_db = g.con.get_game(gameid)
 
         if not game_db:
@@ -429,6 +647,23 @@ class Shots(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_SHOT_PROFILE)
 
     def post(self, gameid):
+        '''
+        Fire a shot in a game.
+
+        INPUT PARAMETERS:
+            :param int playerid: ID of the player.
+            :param int gameid: ID of the game.
+            :param int x: Row where the shot is fired.
+            :param int y: Column where the shot is fired.
+            :param str shot_type: Shot type can be used to introduce shot specific gameplay mechanics.
+
+        RESPONSE STATUS CODE
+            * Return status code 204 if shot was fired succesfully.
+            * Return status code 415 if the request is not JSON or the request format is incorrect.
+            * Return status code 404 if the game was not found in the database.
+            * Return status code 400 if parameters are missing.
+            * Return status code 500 if the shot could not be created in the database.
+        '''
         if JSON != request.headers.get("Content-Type", ""):
             abort(415)
 

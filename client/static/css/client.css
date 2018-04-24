@@ -1,0 +1,15 @@
+body {  
+    margin: 0 auto;  
+    width: 940px;  
+    font: 26px/44px Helvetica, Arial, sans-serif;  
+    background: #666666;  
+}
+
+h1 {  
+    font-size: 22px;
+    color: white;  
+}
+
+h2 {  
+    font-size: 22px;  
+}
