@@ -1,0 +1,10 @@
+'''
+This is a text based client for the battleship.
+It is designed to be extremely simple.
+'''
+
+from logic import ship_in_xy
+
+
+a = [1, "foo"]
+print(ship_in_xy)
