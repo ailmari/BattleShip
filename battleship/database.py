@@ -413,7 +413,7 @@ class Connection(object):
             print("Error %s:" % (e.args[0]))
         return bool(cur.rowcount)
 
-    def create_player(self, playerid, nickname, gameid):
+    def create_player(self, nickname, gameid):
         '''
         Creates a new player into the database.
 
@@ -422,16 +422,32 @@ class Connection(object):
         :param int gameid: The id of the game player is joining.
         :return: True if player was created, False otherwise.
         '''
-        #Create the SQL Statement
+        #Query to get number of players in the game
+        query1 = 'SELECT * from player WHERE game = ?'
+        #Statement to create the player
         stmnt = 'INSERT INTO player (id, nickname, game) \
                  VALUES (?, ?, ?)'
+
         #Activate foreign key support
         self.set_foreign_keys_support()
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
+
+        #Get current players of this game and define next playerid
+        pvalue = (gameid,)
+        cur.execute(query1, pvalue)
+        rows = cur.fetchall()
+        playerid = None
+        if rows == []:
+            playerid = 0
+        else:
+            playerids = []
+            for row in rows:
+                playerids.append(row['id'])
+            playerid = max(playerids) + 1
+
         #Generate the values for SQL statement
-        #lastplayerid = cur.lastrowid
         pvalue = (playerid, nickname, gameid)
         #Execute the statement
         try:
@@ -440,7 +456,9 @@ class Connection(object):
             print("Error %s:" % (e.args[0]))
             return False
         self.con.commit()
-        return True
+        #return True
+        #Return the game id
+        return playerid if playerid is not None else None
 
     def get_players(self, gameid):
         '''

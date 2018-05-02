@@ -369,7 +369,6 @@ class Players(Resource):
 
         INPUT PARAMETERS:
             :param int gameid: ID of the Game to join.
-            :param int playerid: ID for the Player. TODO increment this automatically!
             :param str nickname: Nickname for the Player. If empty, defaults to Anonymous Landlubber.
 
         RESPONSE ENTITY BODY:
@@ -402,23 +401,20 @@ class Players(Resource):
         request_body = request.get_json(force=True)
         if not request_body:
             return create_error_response(415, "Unsupported Media Type", "Use a JSON compatible format")
-
-        try:
-            playerid = request_body["id"]
-        except KeyError:
-            return create_error_response(400, "Wrong request format", "Player id is missing from the request!")
         
         try:
             nickname = request_body["nickname"]
         except KeyError:
             nickname = "Anonymous landlubber"
 
-        if g.con.create_player(playerid, nickname, gameid):
-            url = api.url_for(Player, playerid=playerid, gameid=gameid)
-            return Response(status=201, headers={"Location": url})
-        else:
+
+        playerid = g.con.create_player(nickname, gameid)
+        if not playerid:
             return create_error_response(500, "Problem with the database",
                 "Thousand thundering typhoons! Cannot access the database!")
+        else:
+            url = api.url_for(Player, playerid=playerid, gameid=gameid)
+            return Response(status=201, headers={"Location": url})
     
 class Player(Resource):
     '''
