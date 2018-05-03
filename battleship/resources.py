@@ -580,7 +580,6 @@ class Ships(Resource):
             return create_error_response(415, "Unsupported Media Type", "Use a JSON compatible format")
 
         try:
-            shipid=request_body["shipid"]
             stern_x=request_body["stern_x"]
             stern_y=request_body["stern_y"]
             bow_x=request_body["bow_x"]
@@ -589,7 +588,7 @@ class Ships(Resource):
         except KeyError:
             return create_error_response(400, "Wrong request format", "Include all parameters in the request!")
 
-        if g.con.create_ship(shipid, playerid, gameid, stern_x, stern_y, bow_x, bow_y, ship_type):
+        if g.con.create_ship(playerid, gameid, stern_x, stern_y, bow_x, bow_y, ship_type):
             return Response(status=204)
         else:
             return create_error_response(500, "Problem with the database",

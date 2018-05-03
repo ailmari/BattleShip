@@ -607,7 +607,7 @@ class Connection(object):
             print("Error %s:" % (e.args[0]))
         return bool(cur.rowcount)
 
-    def create_ship(self, shipid, playerid, gameid, stern_x, stern_y, bow_x, bow_y, ship_type):
+    def create_ship(self, playerid, gameid, stern_x, stern_y, bow_x, bow_y, ship_type):
         '''
         Creates a new ship into the database.
 
@@ -621,6 +621,15 @@ class Connection(object):
         :param string ship_type: String to determine custom type of ship.
         :return: True if ship was created, False otherwise.
         '''
+
+        #Get current ships to define the next ship's id
+        ships = self.get_ships_by_player(gameid, playerid)
+        if ships is None:
+            shipid = 0
+        else:
+            shipid = len(ships) + 1
+        print(shipid)
+
         #Create the SQL Statement
         stmnt = 'INSERT INTO ship (id, player, game, stern_x, stern_y, bow_x, bow_y, ship_type) \
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
