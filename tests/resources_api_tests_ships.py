@@ -135,11 +135,11 @@ class ShipsResourceTestCase(unittest.TestCase):
             self.assertIn("profile", item["@controls"])
 
     @print_test_info
-    def test_put_ships(self):
+    def test_post_ships(self):
         """
-        Checks that PUT Ships returns correct status code
+        Checks that POST Ships returns correct status code
         """
-        resp = self.client.put(flask.url_for("ships", gameid="12345", playerid="2"),
+        resp = self.client.post(flask.url_for("ships", gameid="12345", playerid="2"),
             headers={"Content-Type": JSON,
                 "Accept": MASONJSON},
             data=json.dumps(self.place_ships_request))

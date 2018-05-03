@@ -409,7 +409,7 @@ class Players(Resource):
 
 
         playerid = g.con.create_player(nickname, gameid)
-        if not playerid:
+        if playerid is None:
             return create_error_response(500, "Problem with the database",
                 "Thousand thundering typhoons! Cannot access the database!")
         else:
@@ -537,7 +537,7 @@ class Ships(Resource):
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_SHIP_PROFILE)
 
-    def put(self, playerid, gameid):
+    def post(self, playerid, gameid):
         '''
         Place a ship for a player in a game.
         TODO add logic to place all / multiple ships etc.
@@ -567,6 +567,13 @@ class Ships(Resource):
                 resource_type="Game",
                 resource_url=request.path,
                 resource_id=gameid)
+
+        player_db = g.con.get_player(playerid, gameid)
+        if not player_db:
+            abort(404, message="There is no player with id %s" % playerid,
+                resource_type="Player",
+                resource_url=request.path,
+                resource_id=playerid)
 
         request_body = request.get_json(force=True)
         if not request_body:
