@@ -27,9 +27,9 @@ def randomize_ships(map_size, starting_ships):
     ships = list()
     for ship in starting_ships:
         while True:
-            x_coord = map_size[0]
-            y_coord = map_size[1]
-            sq = (randint(0, x_coord), randint(0, y_coord))
+            width = map_size[0] - 1
+            length = map_size[1] - 1
+            sq = (randint(0, width), randint(0, length))
             direction = choice(['up', 'down', 'left', 'right'])
             new_ship = ship_to_direction(sq, ship.length, direction, ship.type)
             squares = ship_squares(new_ship)
@@ -60,9 +60,19 @@ def ship_to_direction(start, length, direction, type):
 
 
 def xy_in_map(xy, map_size):
+    '''
+    Return True if xy is in map, else False.
+
+    Inputs are both tuples with two numbers.
+    xy has (x,y) coordinates.
+    map_size has (x, y) width and length.
+
+    0 is considered to be part of the map.
+    So a (10, 10) map would contain (0-9, 0-9)
+    '''
     mx, my = map_size
     x, y, = xy
-    return (0 <= x <= mx) and (0 <= y <= my)
+    return (0 <= x < mx) and (0 <= y < my)
 
 
 class TextClient():
