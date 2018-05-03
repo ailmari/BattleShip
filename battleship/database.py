@@ -417,10 +417,9 @@ class Connection(object):
         '''
         Creates a new player into the database.
 
-        :param int playerid: The id of the player.
         :param string nickname; The nicknameo of the player.
         :param int gameid: The id of the game player is joining.
-        :return: True if player was created, False otherwise.
+        :return: player id if player was created, None otherwise.
         '''
         #Query to get number of players in the game
         query1 = 'SELECT * from player WHERE game = ?'
@@ -456,8 +455,8 @@ class Connection(object):
             print("Error %s:" % (e.args[0]))
             return False
         self.con.commit()
-        #return True
-        #Return the game id
+        
+        #Return the player id
         return playerid if playerid is not None else None
 
     def get_players(self, gameid):

@@ -38,8 +38,7 @@ class PlayersResourceTestCase(unittest.TestCase):
     Tests for methods that access the Players resource.
     '''
     create_player_request = {
-        "id": "4",
-        "nickname": "Jack Sparrow",
+        "nickname": "Jack Sparrow"
     }
 
     @classmethod
