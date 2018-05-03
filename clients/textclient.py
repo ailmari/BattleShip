@@ -3,9 +3,10 @@ This is a text based client for the battleship.
 It is designed to be extremely simple.
 '''
 
-from logic import ship_in_xy, Ship, ship_squares
+from logic import ship_in_xy, Ship, ship_squares, draw_map
 from random import randint, choice
 from itertools import chain
+from collections import namedtuple
 
 
 def ask_for_number(question):
@@ -36,8 +37,8 @@ def randomize_ships(map_size, starting_ships):
             if not ship_within_map:
                 continue
             other_ship_squares = [ship_squares(ship) for ship in ships]
-            ships_collide = any([s in chain(other_ship_squares) for s in sq])
-            if not ships_collide:
+            collision = any([s in chain(*other_ship_squares) for s in squares])
+            if not collision:
                 ships.append(new_ship)
                 break
     return ships
@@ -46,13 +47,13 @@ def randomize_ships(map_size, starting_ships):
 def ship_to_direction(start, length, direction, type):
     x, y = start
     if direction == 'up':
-        bow = (x, y - length)
+        bow = (x, y - length + 1)
     elif direction == 'down':
-        bow = (x, y + length)
+        bow = (x, y + length - 1)
     elif direction == 'left':
-        bow = (x - length, y)
+        bow = (x - length + 1, y)
     elif direction == 'right':
-        bow = (x + length, y)
+        bow = (x + length - 1, y)
     else:
         raise ValueError('Got wrong direction', direction)
     return Ship(start, bow, type)
@@ -131,12 +132,10 @@ class TextClient():
 
 
 if __name__ == '__main__':
-    starting_ships = [{'length': 5,
-                       'type': 'a'},
-                      {'length': 7,
-                       'type': 'b'}
-    ]
+    ship = namedtuple('Ship', ['length', 'type'])
+    starting_ships = [ship(5, "a"), ship(7, "b")]
     #client = TextClient(starting_ships)
     #client.main()
     rs = randomize_ships((10, 10), starting_ships)
     print(rs)
+    draw_map(10, 10, [], rs)
