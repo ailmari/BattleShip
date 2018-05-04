@@ -99,32 +99,54 @@ class GamesResourceTestCase(unittest.TestCase):
             self.assertEqual(view_point, resources.Games)
 
     @print_test_info
-    def test_get_games(self):
+    def test_get_games_success_status(self):
         """
-        Checks that GET Games returns correct status code and data format
+        Checks that GET Games returns correct status code
         """
         # Check that I receive status code 200
         resp = self.client.get(flask.url_for("games"))
         self.assertEqual(resp.status_code, 200)
 
+    @print_test_info
+    def test_get_games_headers(self):
+        """
+        Checks that GET Games returns correct headers
+        """
         # Check thant headers are correct
+        resp = self.client.get(flask.url_for("games"))
         self.assertEqual(resp.headers.get("Content-Type",None),
                           "{};{}".format(MASONJSON, BATTLESHIP_GAME_PROFILE))
 
-        # Check that I receive a collection and adequate href
+    @print_test_info
+    def test_get_games_namespaces(self):
+        """
+        Checks that GET Games returns correct namespaces
+        """
+        resp = self.client.get(flask.url_for("games"))
         data = json.loads(resp.data.decode("utf-8"))
-
-        # Check namespaces
         namespaces = data["@namespaces"]
         self.assertIn("battleship", namespaces)
         self.assertIn("name", namespaces["battleship"])
 
-        # Check controls
+    @print_test_info
+    def test_get_games_controls(self):
+        """
+        Checks that GET Games returns correct controls
+        """
+        resp = self.client.get(flask.url_for("games"))
+        data = json.loads(resp.data.decode("utf-8"))
         controls = data["@controls"]
         self.assertIn("self", controls)
         self.assertIn("href", controls["self"])
         self.assertEqual(controls["self"]["href"], url)
+        self.assertIn("create-game", controls)
 
+    def test_get_games_items(self):
+        """
+        Checks that GET Games returns correct items
+        """
+        resp = self.client.get(flask.url_for("games"))
+        data = json.loads(resp.data.decode("utf-8"))
         items = data["items"]
         for item in items:
             self.assertIn("id", item)
@@ -134,19 +156,27 @@ class GamesResourceTestCase(unittest.TestCase):
             self.assertIn("profile", item["@controls"])
 
     @print_test_info
-    def test_post_games(self):
+    def test_post_games_success_status(self):
         """
-        Checks that POST Games (starting new game) works
+        Checks that POST Games (starting new game) returns correct status when success
         """
         resp = self.client.post(resources.api.url_for(resources.Games),
-                                headers={"Content-Type": MASONJSON},
+                                headers={"Content-Type": JSON},
                                 data=json.dumps(self.create_game_request_1)
                                )
         self.assertTrue(resp.status_code == 201)
+
+    @print_test_info
+    def test_post_games_location_in_header(self):
+        """
+        Checks that POST Games (starting new game) returns location in header
+        """
+        resp = self.client.post(resources.api.url_for(resources.Games),
+                                headers={"Content-Type": JSON},
+                                data=json.dumps(self.create_game_request_1)
+                               )
         url = resp.headers.get("Location")
         self.assertIsNotNone(url)
-        resp = self.client.get(url)
-        self.assertTrue(resp.status_code == 200)
 
     @print_test_info
     def test_post_games_wrong_media(self):
@@ -154,7 +184,7 @@ class GamesResourceTestCase(unittest.TestCase):
         Tests creating game with wrong content-type
         """
         resp = self.client.post(resources.api.url_for(resources.Games),
-                                headers={"Content-Type": JSON},
+                                headers={"Content-Type": MASONJSON},
                                 data=json.dumps(self.create_game_request_1)
                                )
         self.assertTrue(resp.status_code == 415)
@@ -208,6 +238,15 @@ class GamesResourceTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 204)
         resp2 = self.client.get(game_url)
         self.assertEqual(resp2.status_code, 404)
+
+    @print_test_info
+    def test_delete_game_success_status(self):
+        """
+        Checks that DELETE Game returns correct status
+        """
+        game_url = url + "12345/"
+        resp = self.client.delete(game_url)
+        self.assertEqual(resp.status_code, 204)
 
     @print_test_info
     def test_patch_game(self):

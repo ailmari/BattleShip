@@ -628,7 +628,6 @@ class Connection(object):
             shipid = 0
         else:
             shipid = len(ships) + 1
-        print(shipid)
 
         #Create the SQL Statement
         stmnt = 'INSERT INTO ship (id, player, game, stern_x, stern_y, bow_x, bow_y, ship_type) \

@@ -250,7 +250,6 @@ class ShipDBTestCase(unittest.TestCase):
         Test create_ship with NEW_SHIP.
         '''
         success = self.connection.create_ship(
-            NEW_SHIP['id'],
             NEW_SHIP['player'],
             NEW_SHIP['game'],
             NEW_SHIP['stern_x'],
@@ -269,7 +268,6 @@ class ShipDBTestCase(unittest.TestCase):
         Test creating ship into a game that does not exist.
         '''
         success = self.connection.create_ship(
-            NEW_SHIP_INCORRECT_GAME['id'],
             NEW_SHIP_INCORRECT_GAME['player'],
             NEW_SHIP_INCORRECT_GAME['game'],
             NEW_SHIP_INCORRECT_GAME['stern_x'],
@@ -282,24 +280,6 @@ class ShipDBTestCase(unittest.TestCase):
         self.assertFalse(success)
         ship = self.connection.get_ship(NEW_SHIP_INCORRECT_GAME['id'], NEW_SHIP_INCORRECT_GAME['player'], NEW_SHIP_INCORRECT_GAME['game'])
         self.assertIsNone(ship)
-
-    @print_test_info
-    def test_create_ship_same_id_player_and_game(self):
-        '''
-        Test that a game cannot contain two ships with same ID.
-        '''
-        success = self.connection.create_ship(
-            SHIP1['id'],
-            SHIP1['player'],
-            SHIP1['game'],
-            SHIP1['stern_x'],
-            SHIP1['stern_y'],
-            SHIP1['bow_x'],
-            SHIP1['bow_y'],
-            SHIP1['ship_type']
-        )
-
-        self.assertFalse(success)
 
 
 if __name__ == "__main__":

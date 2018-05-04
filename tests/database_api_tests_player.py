@@ -166,7 +166,6 @@ class PlayerDBTestCase(unittest.TestCase):
         nickname = NEW_PLAYER['nickname']
         gameid = NEW_PLAYER['game']
         success = self.connection.create_player(
-            playerid=playerid,
             nickname=nickname,
             gameid=gameid,
         )
@@ -184,28 +183,12 @@ class PlayerDBTestCase(unittest.TestCase):
         gameid = NEW_PLAYER_INCORRECT_GAME['game']
 
         success = self.connection.create_player(
-            playerid=playerid,
             nickname=nickname,
             gameid=gameid,
         )
         self.assertFalse(success)
         player = self.connection.get_player(playerid, gameid)
         self.assertIsNone(player)
-
-    @print_test_info
-    def test_create_player_same_id_and_game(self):
-        '''
-        Test that a game cannot contain two players with same ID.
-        '''
-        playerid = PLAYER1['id']
-        nickname = PLAYER1['nickname']
-        gameid = PLAYER1['game']
-        success = self.connection.create_player(
-            playerid=playerid,
-            nickname=nickname,
-            gameid=gameid,
-        )
-        self.assertFalse(success)
 
 
 if __name__ == "__main__":

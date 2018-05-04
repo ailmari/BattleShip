@@ -28,7 +28,6 @@ APIARY_PROJECT = "https://battleship.docs.apiary.io"
 APIARY_PROFILES_URL = APIARY_PROJECT+"/#reference/profiles/"
 APIARY_RELS_URL = APIARY_PROJECT+"/#reference/link-relations/"
 
-PLAYER_SCHEMA_URL = "/battleship/schema/player/"
 LINK_RELATIONS_URL = "/battleship/link-relations/"
 
 app = Flask(__name__, static_folder="static", static_url_path="/.")
@@ -883,7 +882,7 @@ api.add_resource(Ships, "/battleship/api/games/<gameid>/players/<playerid>/ships
 api.add_resource(Shots, "/battleship/api/games/<gameid>/shots/",
     endpoint="shots")
 
-@app.route("/battleship/profiles/<profile_name>/")
+@app.route("/profiles/<profile_name>/")
 def redirect_to_profile(profile_name):
     return redirect(APIARY_PROFILES_URL + profile_name)
 
