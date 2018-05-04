@@ -3,6 +3,7 @@ This is a text based client for the battleship.
 It is designed to be extremely simple.
 '''
 
+import requests
 from logic import Ship, ship_squares
 from random import randint, choice
 from itertools import chain
@@ -82,7 +83,7 @@ class TextClient():
     '''
     The client class
     '''
-    def __init__(self, starting_ships):
+    def __init__(self, starting_ships, url):
         '''
         starting_ships should be a list of ships.
         Ships need a length and a type variables.
@@ -91,6 +92,7 @@ class TextClient():
         self.map_size = (10, 10)
         self.starting_ships = starting_ships
         self.nickname = ""
+        self.url = url
 
     def main(self):
         print('Welcome to text based Battleship client!')
@@ -133,8 +135,8 @@ class TextClient():
             print(game)
         print('Select game')
         while True:
-            selection = str(ask_for_number('>'))
-            if selection in [g.id for g in self.games]:
+            selection = ask_for_number('>')
+            if selection in games:
                 self.join_game(selection)
                 return
             else:
@@ -145,7 +147,18 @@ class TextClient():
         Search for games from the server.
         Return a list of games.
         '''
-        pass  # HTTP METHOD FOR FINDING GAMES HERE!
+        try:
+            response = requests.get('{0}/battleship/api/games/'.format(self.url))
+        except Exception as e:
+            print('Error while searching for games:', e)
+            return []
+        if response.status_code == 200:
+            games = [i.get('id') for i in response.json().get('items')]
+            return games
+        else:
+            print('Could not get games.')
+            print(response.text)
+            return []
 
     def join_game(self, selection):
         '''
@@ -195,5 +208,6 @@ class TextClient():
 if __name__ == '__main__':
     # Just quick test ships
     starting_ships = [StartingShip(5, "a"), StartingShip(7, "b")]
-    client = TextClient(starting_ships)
+    URL = 'http://localhost:5000'
+    client = TextClient(starting_ships, URL)
     client.main()
