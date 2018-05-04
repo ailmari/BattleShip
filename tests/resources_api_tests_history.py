@@ -99,17 +99,30 @@ class HistoryResourceTestCase(unittest.TestCase):
             self.assertEqual(view_point, resources.History)
 
     @print_test_info
-    def test_get_history(self):
+    def test_get_history_success_status(self):
         """
-        Checks that GET History returns correct status code and data format
+        Checks that GET History returns correct status code
         """
         # Check that I receive status code 200
         resp = self.client.get(flask.url_for("history"))
         self.assertEqual(resp.status_code, 200)
 
+    @print_test_info
+    def test_get_history_headers(self):
+        """
+        Checks that GET History returns correct headers
+        """
+        resp = self.client.get(flask.url_for("history"))
         # Check thant headers are correct
         self.assertEqual(resp.headers.get("Content-Type",None),
                           "{};{}".format(MASONJSON, BATTLESHIP_GAME_PROFILE))
+
+    @print_test_info
+    def test_get_history_body(self):
+        """
+        Checks that GET History returns correct body
+        """
+        resp = self.client.get(flask.url_for("history"))
 
         # Check that I receive a collection and adequate href
         data = json.loads(resp.data.decode("utf-8"))

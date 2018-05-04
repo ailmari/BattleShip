@@ -724,12 +724,12 @@ class Connection(object):
         #Activate foreign key support
         self.set_foreign_keys_support()
         #Create the SQL Query
-        query = 'SELECT * FROM turn WHERE game = ? AND turn_number = (SELECT MAX(turn_number) FROM turn)'
+        query = 'SELECT * FROM turn WHERE game = ? AND turn_number = (SELECT MAX(turn_number) FROM turn WHERE game = ?)'
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
         #Execute main SQL Query
-        pvalue = (gameid,)
+        pvalue = (gameid, gameid,)
         cur.execute(query, pvalue)
         #Process the response.
         rows = cur.fetchall()
