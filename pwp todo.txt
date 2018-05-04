@@ -15,9 +15,7 @@ Nämä Ivan laitto sähköpostissa:
 In Apiary: 
 -	Add the link relations that you have used in the LINK relations section.
 -	Add the format of the PATCH request (for instance end game)
--	Use POST to place ships. 
--	What is Shotid when you fire a shot?.
-	Should not the player send and HTTP POST request to http://polls.apiblueprint.org/battleships/api/games/gameid/shots/
-	(without shotid). The shotid is returned by the server in the Location header when the shot is created.
-	You might want to add a GET for this shot.
+DONE-	Use POST to place ships. 
+DONE-	What is Shotid when you fire a shot? Should not the player send and HTTP POST request to http://polls.apiblueprint.org/battleships/api/games/gameid/shots/ (without shotid). The shotid is returned by the server in the Location header when the shot is created.
+-	You might want to add a GET for this shot.
 "

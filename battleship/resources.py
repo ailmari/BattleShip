@@ -60,6 +60,47 @@ class MasonObject(dict):
 
         self["@controls"][ctrl_name] = kwargs
 
+    def add_control_create_game(self):
+        if "@controls" not in self:
+            self["@controls"] = {}
+
+        self["@controls"]["create-game"] = {
+            "href": api.url_for(Games),
+            "title": "Create new game",
+            "encoding": "json",
+            "method": "POST",
+            "schema": self._game_schema()
+        }
+
+    def add_control_end_game(self, gameid):
+        if "@controls" not in self:
+            self["@controls"] = {}
+
+        self["@controls"]["end-game"] = {
+            "href": api.url_for(Game, gameid=gameid),
+            "title": "End this game",
+            "method": "PATCH"
+        }
+
+    def add_control_delete_game(self, gameid):
+        if "@controls" not in self:
+            self["@controls"] = {}
+
+        self["@controls"]["delete-game"] = {
+            "href": api.url_for(Game, gameid=gameid),
+            "title": "Delete this game",
+            "method": "DELETE"
+        }
+
+    def _game_schema(self):
+        schema = {
+            "x_size": "Number of columns on the map",
+            "y_size": "Number of rows on the map",
+            "turn_length": "Time in seconds players have to play one turn"
+        }
+
+        return schema
+
 # ERROR HANDLERS
 def create_error_response(status_code, title, message=None):
     resource_url = None
@@ -119,6 +160,7 @@ class Games(Resource):
         envelope = MasonObject()
         envelope.add_namespace("battleship", LINK_RELATIONS_URL)
         envelope.add_control("self", href=api.url_for(Games))
+        envelope.add_control_create_game()
 
         items = envelope["items"] = []
 
@@ -136,7 +178,7 @@ class Games(Resource):
         Creates a new Game.
 
         REQUEST ENTITY BODY:
-            * Media type: MASON:
+            * Media type: JSON:
             * Profile: Battleship_Game
                 /profiles/game-profile
 
@@ -158,7 +200,7 @@ class Games(Resource):
             * Returns 415 if the format of the request is not mason.
             * Returns 500 if the game could not be added to database.
         '''
-        if MASON != request.headers.get("Content-Type",""):
+        if JSON != request.headers.get("Content-Type",""):
             return create_error_response(415, "UnsupportedMediaType",
                                          "Macrocephalic baboon! Use a JSON compatible format!")
         request_body = request.get_json(force=True)
@@ -215,6 +257,10 @@ class Game(Resource):
         envelope.add_control("profile", href=BATTLESHIP_GAME_PROFILE)
         envelope.add_control("self", href=api.url_for(Game, gameid=gameid))
         envelope.add_control("collection", href=api.url_for(Games))
+        envelope.add_control("players", href=api.url_for(Players, gameid=gameid))
+        envelope.add_control("shots", href=api.url_for(Shots, gameid=gameid))
+        envelope.add_control_end_game(gameid=gameid)
+        envelope.add_control_delete_game(gameid=gameid)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
 
@@ -451,6 +497,7 @@ class Player(Resource):
         envelope.add_control("profile", href=BATTLESHIP_PLAYER_PROFILE)
         envelope.add_control("collection", href=api.url_for(Players, gameid=gameid))
         envelope.add_control("game", href=api.url_for(Game, gameid=gameid))
+        envelope.add_control("ships", href=api.url_for(Ships, playerid=playerid, gameid=gameid))
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_PLAYER_PROFILE)
 
