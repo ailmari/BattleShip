@@ -16,7 +16,7 @@ def ask_for_number(question):
     while True:
         input_ = input(question)
         try:
-            input_ = float(input_)
+            input_ = int(input_)
         except ValueError:
             print("Not a valid input!")
             continue
@@ -90,6 +90,7 @@ class TextClient():
         self.games = list()
         self.map_size = (10, 10)
         self.starting_ships = starting_ships
+        self.nickname = ""
 
     def main(self):
         print('Welcome to text based Battleship client!')
@@ -123,13 +124,16 @@ class TextClient():
                     continue
                 else:
                     return
+            else:
+                self.games = games
+                break
 
         print('Found games!')
         for game in self.games:
             print(game)
-        print('Select game:')
+        print('Select game')
         while True:
-            selection = ask_for_number('>')
+            selection = str(ask_for_number('>'))
             if selection in [g.id for g in self.games]:
                 self.join_game(selection)
                 return
@@ -147,22 +151,46 @@ class TextClient():
         '''
         Join the selected game.
         '''
-        self.joined = self._join(selection)
-        if self.joined:
-            pass
-        else:
-            print('Cannot join game', selection)
+        print('Select nickname, or leave empty for default nickname.')
+        self.nickname = input().strip()
+        while True:
+            print('Trying to join game:', selection)
+            self.joined = self._join(selection)
+            if self.joined:
+                break
+            else:
+                print('Joining failed')
+                print('1) Retry')
+                print('2) Quit')
+                selection = ask_for_number('>')
+                if selection == 1:
+                    continue
+                else:
+                    return
+
+        print('Joined the game!')
+        self.play_game()
 
     def _join(self, selection):
         '''
-        Handle the HTTP connection here.
+        Join the selected game with current nickname,
+        and randomize the starting ships.
         return True if success, else False
         '''
-        # ADD NETWORK LOGIC HERE!
-        ships = self._randomize_ships(self.map_size, self.starting_ships)
-        # TODO: send selected ships to the server
+        # Try joining as a new player
+
+        # Send randomized ships to the server
+        ships = randomize_ships(self.map_size, self.starting_ships)
         return True
 
+    def play_game(self):
+        '''
+        Handle the gameplay here.
+        The players first choose where to shoot,
+        and the shot is sent to server.
+        Between shots, data is fetched from the server to display the map.
+        '''
+        pass
 
 if __name__ == '__main__':
     # Just quick test ships
