@@ -7,15 +7,32 @@ TODO
 - Resources Testeistä puuttuu Shots. Ja kaikki error koodit pitäis testata erikseen yms.
 
 
-Sit voi myös kattoo meeting notes, mitä kommentteja siellä oli.
+Sit voi myös kattoo meeting notes, mitä kommentteja siellä oli. Tässä jotaki:
+DL3:
+-No state machine diagram
+-No sequence diagram
+-Content type of post patch request is not mason but json 
+-Explain better the REST conformance
+-Remember to use schemas to define body of HTTP requests
+DL4:
+Tests:
+- Test each error code separately
+- Tests for Shots
+Smaller issues:
+DONE?- Proper use of profiles
+DONE?- Proper use of link relations
+Larger issues:
+DONE?- Links from game to players etc.
+DONE?- Schemas for POST, PUT etc.
 
 
 Nämä Ivan laitto sähköpostissa:
 "
 In Apiary: 
--	Add the link relations that you have used in the LINK relations section.
+DONE?-	Add the link relations that you have used in the LINK relations section.
 -	Add the format of the PATCH request (for instance end game)
 DONE-	Use POST to place ships. 
 DONE-	What is Shotid when you fire a shot? Should not the player send and HTTP POST request to http://polls.apiblueprint.org/battleships/api/games/gameid/shots/ (without shotid). The shotid is returned by the server in the Location header when the shot is created.
 -	You might want to add a GET for this shot.
 "
+

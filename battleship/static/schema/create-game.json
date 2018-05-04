@@ -1,0 +1,20 @@
+{
+	"type": "object",
+	"properties": {
+		"x_size": {
+			"title": "x-size",
+			"description": "Desired number of columns for the game map.",
+			"type": "integer"
+		},
+		"y_size": {
+			"title": "y-size",
+			"description": "Desired number of rows for the game map.",
+			"type": "integer"
+		},
+		"turn_length": {
+			"title": "turn length",
+			"description": "Time in seconds players have to play their turns.",
+			"type": "integer"
+		}
+	}
+}

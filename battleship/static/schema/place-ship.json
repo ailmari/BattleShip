@@ -1,0 +1,30 @@
+{
+	"type": "object",
+	"properties": {
+		"stern_x": {
+			"title": "stern x-coordinate",
+			"description": "Column of ships stern.",
+			"type": "integer"
+		},
+		"stern_y": {
+			"title": "stern y-coordinate",
+			"description": "Row of ships stern.",
+			"type": "integer"
+		},
+		"bow_x": {
+			"title": "bow x-coordinate",
+			"description": "Column of ships bow.",
+			"type": "integer"
+		},
+		"bow_y": {
+			"title": "bow y-coordinate",
+			"description": "Row of ships bow.",
+			"type": "integer"
+		},
+		"ship_type": {
+			"title": "ship type",
+			"description": "Ship type can be defined by the application.",
+			"type": "string"
+		}
+	}
+}
