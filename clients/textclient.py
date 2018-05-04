@@ -205,18 +205,16 @@ class TextClient():
         return True if success, else False
         '''
         # Try joining as a new player
-        data = dict()
-        if self.nickname:
-            data['json'] = {"nickname": self.nickname}
         try:
             response = requests.post(
                 '{}/battleship/api/games/{}/players/'.format(self.url, gameid),
-                json=data
+                json={"nickname": self.nickname},
             )
         except Exception as e:
             print('Error while sending Post request:', e)
             return False
         if response.status_code != 201:
+            print('Player creation error!')
             print('status code', response.status_code)
             print(response.text)
             return False
@@ -227,8 +225,9 @@ class TextClient():
         try:
             for ship in ships:
                 url = '{0}ships/'.format(player_url)
-                response = requests.put(url, json=ship_as_dict(ship))
+                response = requests.post(url, json=ship_as_dict(ship))
                 if response.status_code != 204:
+                    print('Ship creation error!')
                     print('Status code', response.status_code)
                     print(response.text)
                     return False
