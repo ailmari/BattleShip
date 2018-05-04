@@ -93,18 +93,38 @@ class TextClient():
 
     def main(self):
         print('Welcome to text based Battleship client!')
-        print('select what do to:')
-        print('1) Find game')
-        print('2) Create game')
-        print('3)exit')
-        selection = ask_for_number('>')
-        if selection == 1:
-            pass  # do something
-        return
+        while True:
+            print('\nMAIN MENU')
+            print('1) Find game')
+            print('2) Create game')
+            print('3)exit')
+            selection = ask_for_number('>')
+            if selection == 1:
+                self.find_game()
+            elif selection == 2:
+                print('Create game WIP')
+            elif selection == 3:
+                print('bye bye')
+                return
+            else:
+                print('Invalid input:', selection)
 
     def find_game(self):
-        print('Find game...')
-        self._search_games()
+        print('\nFIND GAME')
+        while True:
+            print('Searching...')
+            games = self._search_games()
+            if not games:
+                print('No games found')
+                print('1) Retry')
+                print('2) Quit')
+                selection = ask_for_number('>')
+                if selection == 1:
+                    continue
+                else:
+                    return
+
+        print('Found games!')
         for game in self.games:
             print(game)
         print('Select game:')
@@ -119,7 +139,7 @@ class TextClient():
     def _search_games(self):
         '''
         Search for games from the server.
-        Save games to variable games.
+        Return a list of games.
         '''
         pass  # HTTP METHOD FOR FINDING GAMES HERE!
 
