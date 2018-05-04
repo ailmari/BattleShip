@@ -107,7 +107,7 @@ class MasonObject(dict):
 
         self["@controls"]["create-player"] = {
             "href": api.url_for(Players, gameid=gameid),
-            "title": "Create new player to game",
+            "title": "Create new player to this game",
             "encoding": "json",
             "method": "POST",
             "schema": self._player_schema()
@@ -126,6 +126,51 @@ class MasonObject(dict):
     def _player_schema(self):
         schema = {
             "nickname": "Player's name. Defaults to Anonymous Landlubber, if missing."
+        }
+
+        return schema
+
+    def add_control_place_ship(self, gameid, playerid):
+        if "@controls" not in self:
+            self["@controls"] = {}
+
+        self["@controls"]["place-ship"] = {
+            "href": api.url_for(Ships, gameid=gameid, playerid=playerid),
+            "title": "Place ship for this player",
+            "encoding": "json",
+            "method": "POST",
+            "schema": self._ship_schema()
+        }
+
+    def _ship_schema(self):
+        schema = {
+            "stern_x": "Column of ships stern.",
+            "stern_y": "Row of ships stern.",
+            "bow_x": "Column of ships bow.",
+            "bow_y": "Row of ships bow.",
+            "shot_type": "Ship type can be defined by the application."
+        }
+
+        return schema
+
+    def add_control_fire_shot(self, gameid):
+        if "@controls" not in self:
+            self["@controls"] = {}
+
+        self["@controls"]["fire-shot"] = {
+            "href": api.url_for(Shots, gameid=gameid),
+            "title": "Fire shot to this game",
+            "encoding": "json",
+            "method": "POST",
+            "schema": self._shot_schema()
+        }
+
+    def _shot_schema(self):
+        schema = {
+            "playerid": "Player who is firing.",
+            "x": "Column where shot is fired.",
+            "y": "Row where shot is fired.",
+            "shot_type": "Shot type can be defined by the application."
         }
 
         return schema
@@ -290,6 +335,7 @@ class Game(Resource):
         envelope.add_control("shots", href=api.url_for(Shots, gameid=gameid))
         envelope.add_control_end_game(gameid=gameid)
         envelope.add_control_delete_game(gameid=gameid)
+        envelope.add_control_fire_shot(gameid=gameid)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
 
@@ -529,6 +575,7 @@ class Player(Resource):
         envelope.add_control("game", href=api.url_for(Game, gameid=gameid))
         envelope.add_control("ships", href=api.url_for(Ships, playerid=playerid, gameid=gameid))
         envelope.add_control_delete_player(gameid=gameid, playerid=playerid)
+        envelope.add_control_place_ship(gameid=gameid, playerid=playerid)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_PLAYER_PROFILE)
 
@@ -621,9 +668,6 @@ class Ships(Resource):
         TODO add logic to place all / multiple ships etc.
 
         INPUT PARAMETERS:
-            :param int playerid: ID of the player.
-            :param int gameid: ID of the game.
-            :param int shipid: ID of the ship. TODO increment this automatically.
             :param int stern_x: Column of the ship stern.
             :param int stern_y: Row of the ship stern.
             :param int bow_x: Column of the ship bow.
@@ -732,7 +776,6 @@ class Shots(Resource):
 
         INPUT PARAMETERS:
             :param int playerid: ID of the player.
-            :param int gameid: ID of the game.
             :param int x: Row where the shot is fired.
             :param int y: Column where the shot is fired.
             :param str shot_type: Shot type can be used to introduce shot specific gameplay mechanics.
@@ -759,7 +802,7 @@ class Shots(Resource):
             return create_error_response(415, "Unsupported Media Type", "Use a JSON compatible format")
 
         try:
-            turn = request_body["turn"]
+            turn = request_body["turn"] # TODO implement automatic turn stuff and delete this
             playerid = request_body["playerid"]
             x = request_body["x"]
             y = request_body["y"]
