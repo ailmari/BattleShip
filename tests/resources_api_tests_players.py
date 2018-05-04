@@ -38,8 +38,7 @@ class PlayersResourceTestCase(unittest.TestCase):
     Tests for methods that access the Players resource.
     '''
     create_player_request = {
-        "id": "4",
-        "nickname": "Jack Sparrow",
+        "nickname": "Jack Sparrow"
     }
 
     @classmethod
@@ -90,7 +89,7 @@ class PlayersResourceTestCase(unittest.TestCase):
         """
         Checks that the URL points to the right resource
         """
-        url = "/battleship/api/games/12345/players/"
+        url = "/battleship/api/games/0/players/"
         with resources.app.test_request_context(url):
             rule = flask.request.url_rule
             view_point = resources.app.view_functions[rule.endpoint].view_class
@@ -101,7 +100,7 @@ class PlayersResourceTestCase(unittest.TestCase):
         """
         Checks that GET Players returns correct status code and data format
         """
-        resp = self.client.get(flask.url_for("players", gameid='12345'))
+        resp = self.client.get(flask.url_for("players", gameid='0'))
         self.assertEqual(resp.status_code, 200)
 
         # Check thant headers are correct
@@ -120,7 +119,7 @@ class PlayersResourceTestCase(unittest.TestCase):
         controls = data["@controls"]
         self.assertIn("self", controls)
         self.assertIn("href", controls["self"])
-        self.assertEqual(controls["self"]["href"], "/battleship/api/games/12345/players/")
+        self.assertEqual(controls["self"]["href"], "/battleship/api/games/0/players/")
 
         items = data["items"]
         for item in items:
@@ -143,7 +142,7 @@ class PlayersResourceTestCase(unittest.TestCase):
         """
         Checks that POST Players (join game) works
         """
-        resp = self.client.post(flask.url_for("players", gameid='12346'),
+        resp = self.client.post(flask.url_for("players", gameid='1'),
             headers={"Content-Type": JSON,
                 "Accept": MASONJSON},
             data=json.dumps(self.create_player_request))
@@ -159,7 +158,7 @@ class PlayersResourceTestCase(unittest.TestCase):
         """
         Checks that POST Players to ended game returns error
         """
-        resp = self.client.post(flask.url_for("players", gameid='12345'),
+        resp = self.client.post(flask.url_for("players", gameid='0'),
             headers={"Content-Type": JSON,
                 "Accept": MASONJSON},
             data=json.dumps(self.create_player_request))
@@ -170,7 +169,7 @@ class PlayersResourceTestCase(unittest.TestCase):
         """
         Checks that GET Player returns correct status code and data format
         """
-        resp = self.client.get(flask.url_for("player", gameid="12345", playerid="1"))
+        resp = self.client.get(flask.url_for("player", gameid="0", playerid="0"))
         self.assertEqual(resp.status_code, 200)
 
         data = json.loads(resp.data.decode("utf-8"))
@@ -180,7 +179,7 @@ class PlayersResourceTestCase(unittest.TestCase):
         self.assertIn("self", controls)
         self.assertIn("href", controls["self"])
         self.assertIn("collection", controls)
-        self.assertEqual(controls["self"]["href"], "/battleship/api/games/12345/players/1/")
+        self.assertEqual(controls["self"]["href"], "/battleship/api/games/0/players/0/")
 
         self.assertIn("id", data)
         self.assertIn("nickname", data)
@@ -191,7 +190,7 @@ class PlayersResourceTestCase(unittest.TestCase):
         """
         Checks that DELETE Player works
         """
-        url = "/battleship/api/games/12345/players/1/"
+        url = "/battleship/api/games/0/players/0/"
         resp = self.client.delete(url)
         self.assertEqual(resp.status_code, 204)
         resp2 = self.client.get(url)

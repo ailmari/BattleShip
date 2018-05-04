@@ -417,10 +417,9 @@ class Connection(object):
         '''
         Creates a new player into the database.
 
-        :param int playerid: The id of the player.
         :param string nickname; The nicknameo of the player.
         :param int gameid: The id of the game player is joining.
-        :return: True if player was created, False otherwise.
+        :return: player id if player was created, None otherwise.
         '''
         #Query to get number of players in the game
         query1 = 'SELECT * from player WHERE game = ?'
@@ -456,8 +455,8 @@ class Connection(object):
             print("Error %s:" % (e.args[0]))
             return False
         self.con.commit()
-        #return True
-        #Return the game id
+        
+        #Return the player id
         return playerid if playerid is not None else None
 
     def get_players(self, gameid):
@@ -608,7 +607,7 @@ class Connection(object):
             print("Error %s:" % (e.args[0]))
         return bool(cur.rowcount)
 
-    def create_ship(self, shipid, playerid, gameid, stern_x, stern_y, bow_x, bow_y, ship_type):
+    def create_ship(self, playerid, gameid, stern_x, stern_y, bow_x, bow_y, ship_type):
         '''
         Creates a new ship into the database.
 
@@ -622,6 +621,14 @@ class Connection(object):
         :param string ship_type: String to determine custom type of ship.
         :return: True if ship was created, False otherwise.
         '''
+
+        #Get current ships to define the next ship's id
+        ships = self.get_ships_by_player(gameid, playerid)
+        if ships is None:
+            shipid = 0
+        else:
+            shipid = len(ships) + 1
+
         #Create the SQL Statement
         stmnt = 'INSERT INTO ship (id, player, game, stern_x, stern_y, bow_x, bow_y, ship_type) \
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
@@ -708,6 +715,38 @@ class Connection(object):
             )
         return turns
 
+    def get_current_turn(self, gameid):
+        '''
+        Get latest turn in game.
+        :param int gameid: The id of the game which turns are returned.
+        :return: A list with the turn, or None if ID doesn't exist.
+        '''
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM turn WHERE game = ? AND turn_number = (SELECT MAX(turn_number) FROM turn WHERE game = ?)'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        pvalue = (gameid, gameid,)
+        cur.execute(query, pvalue)
+        #Process the response.
+        rows = cur.fetchall()
+        if rows == []:
+            return None
+        #Build the return object
+        fields = ('turn_number', 'player', 'game')
+        turns = list()
+        for row in rows:
+            turns.append(
+                {'turn_number': row['turn_number'],
+                 'player': row['player'],
+                 'game': row['game'],
+                }
+            )
+        return turns    
+        
     def create_turn(self, turn_number, playerid, gameid):
         '''
         Creates a new turn into a game.

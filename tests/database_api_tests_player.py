@@ -30,30 +30,30 @@ ENGINE = database.Engine('db/battleship_test.db')
 
 
 PLAYER1 = {
-    'id': 1,
+    'id': 0,
     'nickname': 'Fu1L_s41V0_n05CoP3_720',
-    'game': 12345,
+    'game': 0,
 }
 
 PLAYER2 = {
-    'id': 2,
+    'id': 1,
     'nickname': 'Captain Haddock',
-    'game': 12345,
+    'game': 0,
 }
 PLAYER3 = {
-    'id': 3,
+    'id': 2,
     'nickname': 'SUBMARINEGOD',
-    'game': 12345,
+    'game': 0,
 }
 
-GAME1_ID = 12345
+GAME1_ID = 0
 GAME1_PLAYERS = [PLAYER1, PLAYER2, PLAYER3]
 
 
 NEW_PLAYER = {
-    'id': 4,
+    'id': 3,
     'nickname': 'Im_new',
-    'game': 12345,
+    'game': 0,
 }
 
 NEW_PLAYER_INCORRECT_GAME = {
@@ -166,7 +166,6 @@ class PlayerDBTestCase(unittest.TestCase):
         nickname = NEW_PLAYER['nickname']
         gameid = NEW_PLAYER['game']
         success = self.connection.create_player(
-            playerid=playerid,
             nickname=nickname,
             gameid=gameid,
         )
@@ -184,28 +183,12 @@ class PlayerDBTestCase(unittest.TestCase):
         gameid = NEW_PLAYER_INCORRECT_GAME['game']
 
         success = self.connection.create_player(
-            playerid=playerid,
             nickname=nickname,
             gameid=gameid,
         )
         self.assertFalse(success)
         player = self.connection.get_player(playerid, gameid)
         self.assertIsNone(player)
-
-    @print_test_info
-    def test_create_player_same_id_and_game(self):
-        '''
-        Test that a game cannot contain two players with same ID.
-        '''
-        playerid = PLAYER1['id']
-        nickname = PLAYER1['nickname']
-        gameid = PLAYER1['game']
-        success = self.connection.create_player(
-            playerid=playerid,
-            nickname=nickname,
-            gameid=gameid,
-        )
-        self.assertFalse(success)
 
 
 if __name__ == "__main__":
