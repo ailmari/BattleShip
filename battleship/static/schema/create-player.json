@@ -1,0 +1,10 @@
+{
+	"type": "object",
+	"properties": {
+		"nickname": {
+			"title": "nickname",
+			"description": "Player's nickname. Not unique. Defaults to Anonymous Landlubber, if not defined.",
+			"type": "string"
+		}
+	}
+}

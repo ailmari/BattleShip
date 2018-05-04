@@ -1,0 +1,25 @@
+{
+	"type": "object",
+	"properties": {
+		"playerid": {
+			"title": "player id",
+			"description": "Player who is firing.",
+			"type": "integer"
+		},
+		"x": {
+			"title": "y-coordinate",
+			"description": "Column where shot is fired.",
+			"type": "integer"
+		},
+		"y": {
+			"title": "x-coordinate",
+			"description": "Row where shot is fired.",
+			"type": "integer"
+		}
+		"shot_type": {
+			"title": "shot type",
+			"description": "Shot type can be defined by the application.",
+			"type": "string"
+		}
+	}
+}

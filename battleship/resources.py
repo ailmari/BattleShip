@@ -148,7 +148,7 @@ class MasonObject(dict):
             "stern_y": "Row of ships stern.",
             "bow_x": "Column of ships bow.",
             "bow_y": "Row of ships bow.",
-            "shot_type": "Ship type can be defined by the application."
+            "ship_type": "Ship type can be defined by the application."
         }
 
         return schema
@@ -833,6 +833,18 @@ api.add_resource(Ships, "/battleship/api/games/<gameid>/players/<playerid>/ships
     endpoint="ships")
 api.add_resource(Shots, "/battleship/api/games/<gameid>/shots/",
     endpoint="shots")
+
+@app.route("/battleship/profiles/<profile_name>/")
+def redirect_to_profile(profile_name):
+    return redirect(APIARY_PROFILES_URL + profile_name)
+
+@app.route("/battleship/link-relations/<rel_name>/")
+def redirect_to_rels(rel_name):
+    return redirect(APIARY_RELS_URL + rel_name)
+
+@app.route("/battleship/schema/<schema_name>/")
+def send_json_schema(schema_name):
+    return send_from_directory(app.static_folder, "schema/{}.json".format(schema_name))
 
 if __name__ == '__main__':
     # Debug true activates automatic code reloading and improved error messages

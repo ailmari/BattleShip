@@ -19,11 +19,11 @@ Tests:
 - Test each error code separately
 - Tests for Shots
 Smaller issues:
-- Proper use of profiles
-- Proper use of link relations
+DONE?- Proper use of profiles
+DONE?- Proper use of link relations
 Larger issues:
 DONE?- Links from game to players etc.
-- Schemas for POST, PUT etc.
+DONE?- Schemas for POST, PUT etc.
 
 
 Nämä Ivan laitto sähköpostissa:
