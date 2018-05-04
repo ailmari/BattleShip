@@ -38,7 +38,7 @@ api = Api(app)
 
 class MasonObject(dict):
     '''
-    Parent class for resources. Adds generic attributes.
+    Parent class for resources. Adds attributes.
     '''
     def add_error(self, title, details):
         self["@error"] = {
@@ -97,6 +97,35 @@ class MasonObject(dict):
             "x_size": "Number of columns on the map",
             "y_size": "Number of rows on the map",
             "turn_length": "Time in seconds players have to play one turn"
+        }
+
+        return schema
+
+    def add_control_create_player(self, gameid):
+        if "@controls" not in self:
+            self["@controls"] = {}
+
+        self["@controls"]["create-player"] = {
+            "href": api.url_for(Players, gameid=gameid),
+            "title": "Create new player to game",
+            "encoding": "json",
+            "method": "POST",
+            "schema": self._player_schema()
+        }
+
+    def add_control_delete_player(self, gameid, playerid):
+        if "@controls" not in self:
+            self["@controls"] = {}
+
+        self["@controls"]["delete-player"] = {
+            "href": api.url_for(Player, gameid=gameid, playerid=playerid),
+            "title": "Delete this player",
+            "method": "DELETE"
+        }
+
+    def _player_schema(self):
+        schema = {
+            "nickname": "Player's name. Defaults to Anonymous Landlubber, if missing."
         }
 
         return schema
@@ -388,6 +417,7 @@ class Players(Resource):
         envelope.add_namespace("battleship", LINK_RELATIONS_URL)
         envelope.add_control("self", href=api.url_for(Players, gameid=gameid))
         envelope.add_control("game", href=api.url_for(Game, gameid=gameid))
+        envelope.add_control_create_player(gameid=gameid)
 
         items = envelope["items"] = []
 
@@ -498,6 +528,7 @@ class Player(Resource):
         envelope.add_control("collection", href=api.url_for(Players, gameid=gameid))
         envelope.add_control("game", href=api.url_for(Game, gameid=gameid))
         envelope.add_control("ships", href=api.url_for(Ships, playerid=playerid, gameid=gameid))
+        envelope.add_control_delete_player(gameid=gameid, playerid=playerid)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_PLAYER_PROFILE)
 
