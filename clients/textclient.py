@@ -184,13 +184,28 @@ class TextClient():
         print('Joined the game!')
         self.play_game()
 
-    def _join(self, selection):
+    def _join(self, gameid):
         '''
         Join the selected game with current nickname,
         and randomize the starting ships.
         return True if success, else False
         '''
         # Try joining as a new player
+        data = dict()
+        if self.nickname:
+            data['json'] = {"nickname": self.nickname}
+        try:
+            response = requests.post(
+                '{}/battleship/api/games/{}/players/'.format(self.url, gameid),
+                json=data
+            )
+        except Exception as e:
+            print('Error while sending Post request:', e)
+            return False
+        if response.status_code != 201:
+            print('status code', response.status_code)
+            print(response.text)
+            return False
 
         # Send randomized ships to the server
         ships = randomize_ships(self.map_size, self.starting_ships)
@@ -204,6 +219,7 @@ class TextClient():
         Between shots, data is fetched from the server to display the map.
         '''
         pass
+
 
 if __name__ == '__main__':
     # Just quick test ships
