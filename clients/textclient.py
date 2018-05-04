@@ -103,6 +103,7 @@ class TextClient():
         Ships need a length and a type variables.
         '''
         self.games = list()
+        self.gameid = None
         self.map_size = (10, 10)
         self.starting_ships = starting_ships
         self.nickname = ""
@@ -196,6 +197,7 @@ class TextClient():
                     return
 
         print('Joined the game!')
+        self.gameid = selection
         self.play_game()
 
     def _join(self, gameid):
@@ -233,7 +235,6 @@ class TextClient():
                     return False
         except Exception as e:
             print('Error while sending Post request:', e)
-            raise
             return False
         return True
 
@@ -245,6 +246,23 @@ class TextClient():
         Between shots, data is fetched from the server to display the map.
         '''
         pass
+
+    def _get_shots(self, gameid):
+        '''
+        Get shots of a game.
+        '''
+        url = '{0}/battleship/api/games/{1}/shots/'.format(self.url, gameid)
+        try:
+            response = requests.get(url)
+        except Exception as e:
+            print('Error while getting shots:', e)
+            return list()
+        if response.status_code != 200:
+            print('get shot error!')
+            print('status code', response.status_code)
+            print(response.text)
+            return list()
+        return response.json()
 
 
 if __name__ == '__main__':
