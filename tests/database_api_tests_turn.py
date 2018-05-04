@@ -142,6 +142,14 @@ class TurnDBTestCase(unittest.TestCase):
         turns = self.connection.get_turns(GAME1_ID)
         for turn in turns:
             self.assertIn(turn, GAME1_TURNS)
+            
+    @print_test_info
+    def test_get_current_turn(self):
+        '''
+        Test get_current_turn.
+        '''
+        turns = self.connection.get_current_turn(GAME1_ID)
+        self.assertEqual(turns[0]['turn_number'], 2)
 
     @print_test_info
     def test_get_turns_wrong_id(self):

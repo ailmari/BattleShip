@@ -716,6 +716,38 @@ class Connection(object):
             )
         return turns
 
+    def get_current_turn(self, gameid):
+        '''
+        Get latest turn in game.
+        :param int gameid: The id of the game which turns are returned.
+        :return: A list with the turn, or None if ID doesn't exist.
+        '''
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM turn WHERE game = ? AND turn_number = (SELECT MAX(turn_number) FROM turn)'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Query
+        pvalue = (gameid,)
+        cur.execute(query, pvalue)
+        #Process the response.
+        rows = cur.fetchall()
+        if rows == []:
+            return None
+        #Build the return object
+        fields = ('turn_number', 'player', 'game')
+        turns = list()
+        for row in rows:
+            turns.append(
+                {'turn_number': row['turn_number'],
+                 'player': row['player'],
+                 'game': row['game'],
+                }
+            )
+        return turns    
+        
     def create_turn(self, turn_number, playerid, gameid):
         '''
         Creates a new turn into a game.
