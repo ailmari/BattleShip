@@ -3,10 +3,13 @@ This is a text based client for the battleship.
 It is designed to be extremely simple.
 '''
 
-from logic import ship_in_xy, Ship, ship_squares, draw_map
+from logic import Ship, ship_squares
 from random import randint, choice
 from itertools import chain
 from collections import namedtuple
+
+
+StartingShip = namedtuple('StartingShip', ['length', 'type'])
 
 
 def ask_for_number(question):
@@ -142,10 +145,7 @@ class TextClient():
 
 
 if __name__ == '__main__':
-    ship = namedtuple('Ship', ['length', 'type'])
-    starting_ships = [ship(5, "a"), ship(7, "b")]
-    #client = TextClient(starting_ships)
-    #client.main()
-    rs = randomize_ships((10, 10), starting_ships)
-    print(rs)
-    draw_map(10, 10, [], rs)
+    # Just quick test ships
+    starting_ships = [StartingShip(5, "a"), StartingShip(7, "b")]
+    client = TextClient(starting_ships)
+    client.main()
