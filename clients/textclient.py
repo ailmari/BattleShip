@@ -105,6 +105,7 @@ class TextClient():
         '''
         self.games = list()
         self.gameid = None
+        self.playerid = None
         self.map_size = (10, 10)
         self.starting_ships = starting_ships
         self.nickname = ""
@@ -251,10 +252,12 @@ class TextClient():
         '''
         pass
 
-    def _get_shots(self, gameid):
+    def _get_shots(self, gameid=None):
         '''
         Get shots of a game.
         '''
+        if gameid is None:
+            gameid = self.gameid
         url = '{0}/battleship/api/games/{1}/shots/'.format(self.url, gameid)
         try:
             response = requests.get(url)
@@ -263,6 +266,32 @@ class TextClient():
             return list()
         if response.status_code != 200:
             print('get shot error!')
+            print('status code', response.status_code)
+            print(response.text)
+            return list()
+        return response.json()
+
+    def _get_ships(self, gameid=None, playerid=None):
+        '''
+        Get ships of a game made by player.
+        Default to the current ones in memory.
+        '''
+        if gameid is None:
+            gameid = self.gameid
+        if playerid is None:
+            playerid = self.playerid
+        url = '{0}/battleship/api/games/{1}/players/{2}/ships/'.format(
+            self.url,
+            gameid,
+            playerid,
+        )
+        try:
+            response = requests.get(url)
+        except Exception as e:
+            print('Error while getting ships:', e)
+            return list()
+        if response.status_code != 200:
+            print('get ship error!')
             print('status code', response.status_code)
             print(response.text)
             return list()
