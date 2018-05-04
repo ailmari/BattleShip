@@ -13,6 +13,20 @@ from collections import namedtuple
 StartingShip = namedtuple('StartingShip', ['length', 'type'])
 
 
+def ship_as_dict(ship):
+    '''
+    Convert namedtuple Ship items into correct from,
+    so that they can be sent to the server.
+    '''
+    correct_ship = dict()
+    correct_ship['stern_x'] = ship.stern[0]
+    correct_ship['stern_y'] = ship.stern[1]
+    correct_ship['bow_x'] = ship.bow[0]
+    correct_ship['bow_y'] = ship.bow[1]
+    correct_ship['ship_type'] = ship.type
+    return correct_ship
+
+
 def ask_for_number(question):
     while True:
         input_ = input(question)
@@ -208,7 +222,20 @@ class TextClient():
             return False
 
         # Send randomized ships to the server
+        player_url = response.headers.get('Location')
         ships = randomize_ships(self.map_size, self.starting_ships)
+        try:
+            for ship in ships:
+                url = '{0}ships/'.format(player_url)
+                response = requests.put(url, json=ship_as_dict(ship))
+                if response.status_code != 204:
+                    print('Status code', response.status_code)
+                    print(response.text)
+                    return False
+        except Exception as e:
+            print('Error while sending Post request:', e)
+            raise
+            return False
         return True
 
     def play_game(self):
