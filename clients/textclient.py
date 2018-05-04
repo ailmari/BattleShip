@@ -3,6 +3,7 @@ This is a text based client for the battleship.
 It is designed to be extremely simple.
 '''
 
+import re
 import requests
 from logic import Ship, ship_squares
 from random import randint, choice
@@ -236,6 +237,9 @@ class TextClient():
         except Exception as e:
             print('Error while sending Post request:', e)
             return False
+
+        # Save player ID, ripped from player_url
+        self.playerid = re.search('\/(\d*)\/$', player_url).group(1)
         return True
 
     def play_game(self):
