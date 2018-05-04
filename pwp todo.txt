@@ -9,11 +9,11 @@ TODO
 
 Sit voi myös kattoo meeting notes, mitä kommentteja siellä oli. Tässä jotaki:
 DL3:
--No state machine diagram
--No sequence diagram
--Content type of post patch request is not mason but json 
--Explain better the REST conformance
--Remember to use schemas to define body of HTTP requests
+- No state machine diagram
+- No sequence diagram
+DONE- Content type of post patch request is not mason but json 
+- Explain better the REST conformance
+- Remember to use schemas to define body of HTTP requests
 DL4:
 Tests:
 - Test each error code separately
@@ -30,7 +30,7 @@ Nämä Ivan laitto sähköpostissa:
 "
 In Apiary: 
 DONE?-	Add the link relations that you have used in the LINK relations section.
--	Add the format of the PATCH request (for instance end game)
+- Add the format of the PATCH request (for instance end game) <- But we don't have body for this request? API creates the end time.
 DONE-	Use POST to place ships. 
 DONE-	What is Shotid when you fire a shot? Should not the player send and HTTP POST request to http://polls.apiblueprint.org/battleships/api/games/gameid/shots/ (without shotid). The shotid is returned by the server in the Location header when the shot is created.
 -	You might want to add a GET for this shot.
