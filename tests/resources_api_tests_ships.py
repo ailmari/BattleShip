@@ -94,7 +94,7 @@ class ShipsResourceTestCase(unittest.TestCase):
         """
         Checks that the URL points to the right resource
         """
-        url = "/battleship/api/games/12345/players/1/ships/"
+        url = "/battleship/api/games/0/players/1/ships/"
         with resources.app.test_request_context(url):
             rule = flask.request.url_rule
             view_point = resources.app.view_functions[rule.endpoint].view_class
@@ -105,7 +105,7 @@ class ShipsResourceTestCase(unittest.TestCase):
         """
         Checks that GET Ships returns correct status code and data format
         """
-        resp = self.client.get(flask.url_for("ships", gameid="12345", playerid="1"))
+        resp = self.client.get(flask.url_for("ships", gameid="0", playerid="1"))
         self.assertEqual(resp.status_code, 200)
 
         # Check thant headers are correct
@@ -124,7 +124,7 @@ class ShipsResourceTestCase(unittest.TestCase):
         controls = data["@controls"]
         self.assertIn("self", controls)
         self.assertIn("href", controls["self"])
-        self.assertEqual(controls["self"]["href"], "/battleship/api/games/12345/players/1/ships/")
+        self.assertEqual(controls["self"]["href"], "/battleship/api/games/0/players/1/ships/")
 
         items = data["items"]
         for item in items:
@@ -139,7 +139,7 @@ class ShipsResourceTestCase(unittest.TestCase):
         """
         Checks that POST Ships returns correct status code
         """
-        resp = self.client.post(flask.url_for("ships", gameid="12345", playerid="2"),
+        resp = self.client.post(flask.url_for("ships", gameid="0", playerid="2"),
             headers={"Content-Type": JSON,
                 "Accept": MASONJSON},
             data=json.dumps(self.place_ships_request))

@@ -26,45 +26,45 @@ from battleship import database
 
 ENGINE = database.Engine('db/battleship_test.db')
 
-GAME1_ID = 12345
-PLAYER1_ID = 1
-PLAYER2_ID = 2
-PLAYER3_ID = 3
+GAME1_ID = 0
+PLAYER1_ID = 0
+PLAYER2_ID = 1
+PLAYER3_ID = 2
 
 P1TURN1 = {
-    'turn_number': 1,
-    'player': 1,
-    'game': 12345,
+    'turn_number': 0,
+    'player': 0,
+    'game': 0,
 }
 P2TURN1 = {
-    'turn_number': 1,
-    'player': 2,
-    'game': 12345,
+    'turn_number': 0,
+    'player': 1,
+    'game': 0,
 }
 P3TURN1 = {
-    'turn_number': 1,
-    'player': 3,
-    'game': 12345,
+    'turn_number': 0,
+    'player': 2,
+    'game': 0,
 }
 P1TURN2 = {
-    'turn_number': 2,
-    'player': 1,
-    'game': 12345,
+    'turn_number': 1,
+    'player': 0,
+    'game': 0,
 }
 P2TURN2 = {
-    'turn_number': 2,
-    'player': 2,
-    'game': 12345,
+    'turn_number': 1,
+    'player': 1,
+    'game': 0,
 }
 P3TURN2 = {
-    'turn_number': 2,
-    'player': 3,
-    'game': 12345,
+    'turn_number': 1,
+    'player': 2,
+    'game': 0,
 }
 NEW_TURN = {
-    'turn_number': 3,
-    'player': 1,
-    'game': 12345,
+    'turn_number': 2,
+    'player': 0,
+    'game': 0,
 }
 
 

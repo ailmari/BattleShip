@@ -526,8 +526,10 @@ class Players(Resource):
         try:
             nickname = request_body["nickname"]
         except KeyError:
-            nickname = "Anonymous landlubber"
+            return create_error_response(415, "Unsupported Media Type", "Check the schema for create-player")
 
+        if nickname == "":
+            nickname = "Anonymous landlubber"
 
         playerid = g.con.create_player(nickname, gameid)
         if playerid is None:

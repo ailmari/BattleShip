@@ -30,30 +30,30 @@ ENGINE = database.Engine('db/battleship_test.db')
 
 
 PLAYER1 = {
-    'id': 1,
+    'id': 0,
     'nickname': 'Fu1L_s41V0_n05CoP3_720',
-    'game': 12345,
+    'game': 0,
 }
 
 PLAYER2 = {
-    'id': 2,
+    'id': 1,
     'nickname': 'Captain Haddock',
-    'game': 12345,
+    'game': 0,
 }
 PLAYER3 = {
-    'id': 3,
+    'id': 2,
     'nickname': 'SUBMARINEGOD',
-    'game': 12345,
+    'game': 0,
 }
 
-GAME1_ID = 12345
+GAME1_ID = 0
 GAME1_PLAYERS = [PLAYER1, PLAYER2, PLAYER3]
 
 
 NEW_PLAYER = {
-    'id': 4,
+    'id': 3,
     'nickname': 'Im_new',
-    'game': 12345,
+    'game': 0,
 }
 
 NEW_PLAYER_INCORRECT_GAME = {

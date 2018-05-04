@@ -26,11 +26,11 @@ from battleship import database
 
 ENGINE = database.Engine('db/battleship_test.db')
 
-GAME1_ID = 12345
-GAME2_ID = 12346
+GAME1_ID = 0
+GAME2_ID = 1
 
 GAME1 = {
-    'id': 12345,
+    'id': 0,
     'start_time': "2018-2-21 13:40:36.877952",
     'end_time': "2018-2-25 13:40:36.877952",
     'x_size': 10,
@@ -38,7 +38,7 @@ GAME1 = {
     'turn_length': 5,
 }
 GAME2 = {
-    'id': 12346,
+    'id': 1,
     'start_time': "2018-2-22 12:40:36.877952",
     'end_time': None,
     'x_size': 10,
@@ -46,7 +46,7 @@ GAME2 = {
     'turn_length': 5,
 }
 GAME3 = {
-    'id': 12347,
+    'id': 2,
     'start_time': "2018-2-23 12:40:36.877952",
     'end_time': None,
     'x_size': 12,
@@ -57,7 +57,7 @@ GAME3 = {
 GAMES = [GAME1, GAME2, GAME3]
 
 NEW_GAME = {
-    'id': 12348,
+    'id': 3,
     'end_time': None,
     'x_size': 10,
     'y_size': 10,

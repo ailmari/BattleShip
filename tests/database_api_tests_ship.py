@@ -27,14 +27,14 @@ from battleship import database
 ENGINE = database.Engine('db/battleship_test.db')
 
 
-GAME1_ID = 12345
-PLAYER1_ID = 1
-PLAYER2_ID = 2
+GAME1_ID = 0
+PLAYER1_ID = 0
+PLAYER2_ID = 1
 
 SHIP1 = {
-    'id': 1,
+    'id': 0,
     'player': 1,
-    'game': 12345,
+    'game': 0,
     'stern_x': 2,
     'stern_y': 3,
     'bow_x': 2,
@@ -43,9 +43,9 @@ SHIP1 = {
 }
 
 SHIP2 = {
-    'id': 2,
+    'id': 1,
     'player': 1,
-    'game': 12345,
+    'game': 0,
     'stern_x': 3,
     'stern_y': 6,
     'bow_x': 6,
@@ -54,9 +54,9 @@ SHIP2 = {
 }
 
 SHIP3 = {
-    'id': 3,
+    'id': 2,
     'player': 1,
-    'game': 12345,
+    'game': 0,
     'stern_x': 3,
     'stern_y': 6,
     'bow_x': 4,
@@ -65,9 +65,9 @@ SHIP3 = {
 }
 
 SHIP4 = {
-    'id': 4,
+    'id': 3,
     'player': 1,
-    'game': 12345,
+    'game': 0,
     'stern_x': 9,
     'stern_y': 5,
     'bow_x': 9,
@@ -80,9 +80,9 @@ PLAYER1_SHIPS = [SHIP1, SHIP2]
 PLAYER2_SHIPS = [SHIP3, SHIP4]
 
 NEW_SHIP = {
-    'id': 5,
-    'player': 1,
-    'game': 12345,
+    'id': 4,
+    'player': 0,
+    'game': 0,
     'stern_x': 1,
     'stern_y': 2,
     'bow_x': 1,
@@ -91,8 +91,8 @@ NEW_SHIP = {
 }
 
 NEW_SHIP_INCORRECT_GAME = {
-    'id': 6,
-    'player': 1,
+    'id': 5,
+    'player': 0,
     'game': 999999,
     'stern_x': 5,
     'stern_y': 5,
@@ -102,9 +102,9 @@ NEW_SHIP_INCORRECT_GAME = {
 }
 
 NEW_SHIP_INCORRECT_PLAYER = {
-    'id': 7,
+    'id': 6,
     'player': 999999,
-    'game': 999999,
+    'game': 0,
     'stern_x': 2,
     'stern_y': 3,
     'bow_x': 2,
@@ -113,9 +113,9 @@ NEW_SHIP_INCORRECT_PLAYER = {
 }
 
 NON_EXISTING_SHIP = {
-    'id': 8,
-    'player': 7,
-    'game': 7,
+    'id': 7,
+    'player': 0,
+    'game': 0,
     'stern_x': 0,
     'stern_y': 0,
     'bow_x': 0,

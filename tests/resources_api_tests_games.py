@@ -194,7 +194,7 @@ class GamesResourceTestCase(unittest.TestCase):
         """
         Checks that the URL points to the right resource
         """
-        game_url = url + "12345/"
+        game_url = url + "0/"
         with resources.app.test_request_context(game_url):
             rule = flask.request.url_rule
             view_point = resources.app.view_functions[rule.endpoint].view_class
@@ -206,7 +206,7 @@ class GamesResourceTestCase(unittest.TestCase):
         Checks that GET Game returns correct status code and data format
         """
         # Check that I receive status code 200
-        resp = self.client.get(flask.url_for("game", gameid='12345'))
+        resp = self.client.get(flask.url_for("game", gameid='0'))
         self.assertEqual(resp.status_code, 200)
 
         # Check thant headers are correct
@@ -233,7 +233,7 @@ class GamesResourceTestCase(unittest.TestCase):
         """
         Checks that DELETE Game works
         """
-        game_url = url + "12345/"
+        game_url = url + "0/"
         resp = self.client.delete(game_url)
         self.assertEqual(resp.status_code, 204)
         resp2 = self.client.get(game_url)
@@ -244,7 +244,7 @@ class GamesResourceTestCase(unittest.TestCase):
         """
         Checks that DELETE Game returns correct status
         """
-        game_url = url + "12345/"
+        game_url = url + "0/"
         resp = self.client.delete(game_url)
         self.assertEqual(resp.status_code, 204)
 
@@ -253,7 +253,7 @@ class GamesResourceTestCase(unittest.TestCase):
         """
         Checks that PATCH Game (end a game) works
         """
-        resp = self.client.patch(flask.url_for("game", gameid='12346'))
+        resp = self.client.patch(flask.url_for("game", gameid='1'))
         self.assertEqual(resp.status_code, 204)
 
     @print_test_info
@@ -261,7 +261,7 @@ class GamesResourceTestCase(unittest.TestCase):
         """
         Checks that PATCH Game (already ended) returns error status
         """
-        resp = self.client.patch(flask.url_for("game", gameid='12345'))
+        resp = self.client.patch(flask.url_for("game", gameid='0'))
         self.assertEqual(resp.status_code, 409)
 
 if __name__ == "__main__":
