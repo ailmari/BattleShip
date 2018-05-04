@@ -784,6 +784,7 @@ class Shots(Resource):
             * Return status code 204 if shot was fired succesfully.
             * Return status code 415 if the request is not JSON or the request format is incorrect.
             * Return status code 404 if the game was not found in the database.
+            * Return status code 403 if not users turn
             * Return status code 400 if parameters are missing.
             * Return status code 500 if the shot could not be created in the database.
         '''
@@ -802,7 +803,7 @@ class Shots(Resource):
             return create_error_response(415, "Unsupported Media Type", "Use a JSON compatible format")
 
         try:
-            turn = request_body["turn"] # TODO implement automatic turn stuff and delete this
+            #turn = request_body["turn"] # TODO implement automatic turn stuff and delete this
             playerid = request_body["playerid"]
             x = request_body["x"]
             y = request_body["y"]
@@ -810,11 +811,59 @@ class Shots(Resource):
         except KeyError:
             return create_error_response(400, "Wrong request format", "Include all parameters in the request!")
 
-        if g.con.create_shot(turn, playerid, gameid, x, y, shot_type):
-            return Response(status=204)
+            
+        turn_is_ended = False
+        is_players_turn = False # initial value
+        
+        players_of_game = g.con.get_players(gameid)
+        latest_turn = g.con.get_current_turn(gameid)
+        if latest_turn is None:
+            latest_turn_number = 0
         else:
-            return create_error_response(500, "Problem with the database",
-                "Thousand thundering typhoons! Cannot access the database!")
+            latest_turn_number = latest_turn[0]['turn_number']
+        
+        latest_turn_shots = g.con.get_shots_by_turn(gameid, latest_turn_number)
+        
+        players_who_has_shot = []
+        if latest_turn_shots is not None:
+            for shot in latest_turn_shots:
+                players_who_has_shot.append(shot['playerid']) 
+
+        playerids_of_game = []
+        if players_of_game is not None:
+            for player in players_of_game:
+                playerids_of_game.append(players_of_game['playerid'])
+                
+        if (players_who_has_shot) and (playerid not in players_who_has_shot):
+            is_players_turn = True
+        else:
+            if set(players_who_has_shot) == set(playerids_of_game):
+                turn_is_ended = True
+                is_player_turn = True
+            elif current_turn is not 0:
+                turn_is_ended = False
+                is_player_turn = False # just for simplicity - could be pass as well
+            else:
+                turn_is_ended = False
+                is_player_turn = True                
+        
+        if turn_is_ended:
+            current_turn += 1
+            if g.con.create_turn(current_turn, playerid, gameid):
+                pass
+            else:
+                return create_error_response(500, "Problem with the database",
+                    "Thousand thundering typhoons! Cannot access the database!")
+            
+        
+        if is_players_turn:
+            if g.con.create_shot(current_turn, playerid, gameid, x, y, shot_type):
+                return Response(status=204)
+            else:
+                return create_error_response(500, "Problem with the database",
+                    "Thousand thundering typhoons! Cannot access the database!")
+        else:   # not players turn
+            return create_error_response(403, "Forbidden", "Not players turn")
 
 # ROUTES
 app.url_map.converters["regex"] = RegexConverter
