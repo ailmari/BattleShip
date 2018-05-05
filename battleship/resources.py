@@ -143,6 +143,7 @@ class MasonObject(dict):
 
     def _ship_schema(self):
         schema = {
+            "playerid": "ID of the player who owns the ship",
             "stern_x": "Column of ships stern.",
             "stern_y": "Row of ships stern.",
             "bow_x": "Column of ships bow.",
@@ -335,8 +336,6 @@ class Game(Resource):
         envelope.add_control("ships", href=api.url_for(Ships, gameid=gameid))
         envelope.add_control_end_game(gameid=gameid)
         envelope.add_control_delete_game(gameid=gameid)
-        envelope.add_control_fire_shot(gameid=gameid)
-        envelope.add_control_place_ship(gameid=gameid)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
 
@@ -574,6 +573,8 @@ class Player(Resource):
         envelope.add_control("collection", href=api.url_for(Players, gameid=gameid))
         envelope.add_control("game", href=api.url_for(Game, gameid=gameid))
         envelope.add_control_delete_player(gameid=gameid, playerid=playerid)
+        envelope.add_control_fire_shot(gameid=gameid)
+        envelope.add_control_place_ship(gameid=gameid)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_PLAYER_PROFILE)
 
