@@ -1,6 +1,11 @@
 {
 	"type": "object",
 	"properties": {
+		"playerid": {
+			"title": "player's id",
+			"description": "id for the player who placed the ship",
+			"type": "integer"
+		},
 		"stern_x": {
 			"title": "stern x-coordinate",
 			"description": "Column of ships stern.",

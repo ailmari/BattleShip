@@ -129,12 +129,12 @@ class MasonObject(dict):
 
         return schema
 
-    def add_control_place_ship(self, gameid, playerid):
+    def add_control_place_ship(self, gameid):
         if "@controls" not in self:
             self["@controls"] = {}
 
         self["@controls"]["place-ship"] = {
-            "href": api.url_for(Ships, gameid=gameid, playerid=playerid),
+            "href": api.url_for(Ships, gameid=gameid),
             "title": "Place ship for this player",
             "encoding": "json",
             "method": "POST",
@@ -332,9 +332,11 @@ class Game(Resource):
         envelope.add_control("collection", href=api.url_for(Games))
         envelope.add_control("players", href=api.url_for(Players, gameid=gameid))
         envelope.add_control("shots", href=api.url_for(Shots, gameid=gameid))
+        envelope.add_control("ships", href=api.url_for(Ships, gameid=gameid))
         envelope.add_control_end_game(gameid=gameid)
         envelope.add_control_delete_game(gameid=gameid)
         envelope.add_control_fire_shot(gameid=gameid)
+        envelope.add_control_place_ship(gameid=gameid)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_GAME_PROFILE)
 
@@ -571,9 +573,7 @@ class Player(Resource):
         envelope.add_control("profile", href=BATTLESHIP_PLAYER_PROFILE)
         envelope.add_control("collection", href=api.url_for(Players, gameid=gameid))
         envelope.add_control("game", href=api.url_for(Game, gameid=gameid))
-        envelope.add_control("ships", href=api.url_for(Ships, playerid=playerid, gameid=gameid))
         envelope.add_control_delete_player(gameid=gameid, playerid=playerid)
-        envelope.add_control_place_ship(gameid=gameid, playerid=playerid)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_PLAYER_PROFILE)
 
