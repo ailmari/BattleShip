@@ -164,10 +164,10 @@ class ShotDBTestCase(unittest.TestCase):
         '''
         Test get_shots_by_turn.
         '''
-        shots = self.connection.get_shots_by_turn(GAME1_ID, 1)
+        shots = self.connection.get_shots_by_turn(GAME1_ID, 0)
         for shot in shots:
             self.assertIn(shot, TURN1_SHOTS)
-        shots2 = self.connection.get_shots_by_turn(GAME1_ID, 2)
+        shots2 = self.connection.get_shots_by_turn(GAME1_ID, 1)
         for shot in shots2:
             self.assertIn(shot, TURN2_SHOTS)
 
@@ -192,6 +192,11 @@ class ShotDBTestCase(unittest.TestCase):
         x = NEW_SHOT['x']
         y = NEW_SHOT['y']
         shot_type = NEW_SHOT['shot_type']
+        success = self.connection.create_turn(
+            1,
+            1,
+            0
+        )
         success = self.connection.create_shot(
             turn,
             playerid,
@@ -203,7 +208,7 @@ class ShotDBTestCase(unittest.TestCase):
         self.assertTrue(success)
         new_turn2_shots = TURN2_SHOTS[:]
         new_turn2_shots.append(NEW_SHOT)
-        shots = self.connection.get_shots_by_turn(GAME1_ID, 2)
+        shots = self.connection.get_shots_by_turn(GAME1_ID, 1)
         for shot in shots:
             self.assertIn(shot, new_turn2_shots)
 
