@@ -452,12 +452,9 @@ class Players(Resource):
 
         players_db = g.con.get_players(gameid)
 
-        if not players_db:
-            abort(404, message="The game with id %s has no players" % gameid,
-                resource_type="Game",
-                resource_url=request.path,
-                resource_id=gameid)
-        
+        if players_db is None:
+            players_db = []
+            
         envelope = MasonObject()
         envelope.add_namespace("battleship", LINK_RELATIONS_URL)
         envelope.add_control("self", href=api.url_for(Players, gameid=gameid))
