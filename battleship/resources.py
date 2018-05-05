@@ -454,7 +454,7 @@ class Players(Resource):
 
         if players_db is None:
             players_db = []
-            
+
         envelope = MasonObject()
         envelope.add_namespace("battleship", LINK_RELATIONS_URL)
         envelope.add_control("self", href=api.url_for(Players, gameid=gameid))
@@ -598,9 +598,9 @@ class Ships(Resource):
     '''
     Ships resource implementation.
     '''
-    def get(self, playerid, gameid):
+    def get(self, gameid):
         '''
-        Get list of ships belonging to a player in a game.
+        Get list of ships in a game.
 
         INPUT PARAMETERS:
             :param int playerid: ID of the player.
@@ -619,27 +619,18 @@ class Ships(Resource):
                 resource_url=request.path,
                 resource_id=gameid)
 
-        player_db = g.con.get_player(playerid, gameid)
-
-        if not player_db:
-            abort(404, message="There is no player with id %s" % playerid,
-                resource_type="Player",
-                resource_url=request.path,
-                resource_id=playerid)
-
-        ships_db = g.con.get_ships_by_player(gameid, playerid)
+        ships_db = g.con.get_ships(gameid)
 
         if not ships_db:
-            abort(404, message="There are no ships owned by player with id %s" % playerid,
+            abort(404, message="There are no ships in game with id %s" % gameid,
                 resource_type="Ships",
                 resource_url=request.path,
-                resource_id=playerid)
+                resource_id=gameid)
 
         envelope = MasonObject()
         envelope.add_namespace("battleship", LINK_RELATIONS_URL)
-        envelope.add_control("self", href=api.url_for(Ships, playerid=playerid, gameid=gameid))
+        envelope.add_control("self", href=api.url_for(Ships, gameid=gameid))
         envelope.add_control("game", href=api.url_for(Game, gameid=gameid))
-        envelope.add_control("player", href=api.url_for(Player, playerid=playerid, gameid=gameid))
 
         items = envelope["items"] = []
 
@@ -654,18 +645,19 @@ class Ships(Resource):
                 bow_y=ship["bow_y"],
                 ship_type=ship["ship_type"]
             )
-            item.add_control("self", href=api.url_for(Ships, playerid=playerid, gameid=gameid))
+            item.add_control("self", href=api.url_for(Ships, gameid=gameid))
             item.add_control("profile", href=BATTLESHIP_SHIP_PROFILE)
             items.append(item)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_SHIP_PROFILE)
 
-    def post(self, playerid, gameid):
+    def post(self, gameid):
         '''
         Place a ship for a player in a game.
         TODO add logic to place all / multiple ships etc.
 
         INPUT PARAMETERS:
+            :param int playerid: Players id.
             :param int stern_x: Column of the ship stern.
             :param int stern_y: Row of the ship stern.
             :param int bow_x: Column of the ship bow.
@@ -688,18 +680,12 @@ class Ships(Resource):
                 resource_url=request.path,
                 resource_id=gameid)
 
-        player_db = g.con.get_player(playerid, gameid)
-        if not player_db:
-            abort(404, message="There is no player with id %s" % playerid,
-                resource_type="Player",
-                resource_url=request.path,
-                resource_id=playerid)
-
         request_body = request.get_json(force=True)
         if not request_body:
             return create_error_response(415, "Unsupported Media Type", "Use a JSON compatible format")
 
         try:
+            playerid=request_body["playerid"]
             stern_x=request_body["stern_x"]
             stern_y=request_body["stern_y"]
             bow_x=request_body["bow_x"]
@@ -874,7 +860,7 @@ api.add_resource(Players, "/battleship/api/games/<gameid>/players/",
     endpoint="players")
 api.add_resource(Player, "/battleship/api/games/<gameid>/players/<playerid>/",
     endpoint="player")
-api.add_resource(Ships, "/battleship/api/games/<gameid>/players/<playerid>/ships/",
+api.add_resource(Ships, "/battleship/api/games/<gameid>/ships/",
     endpoint="ships")
 api.add_resource(Shots, "/battleship/api/games/<gameid>/shots/",
     endpoint="shots")
