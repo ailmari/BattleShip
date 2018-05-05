@@ -3,9 +3,10 @@ This is a text based client for the battleship.
 It is designed to be extremely simple.
 '''
 
-import re
+from pprint import pprint
 import requests
 from logic import Ship, ship_squares
+from hyperlink_controls import enter_games, search_games, use_link
 from random import randint, choice
 from itertools import chain
 from collections import namedtuple
@@ -36,7 +37,7 @@ def ask_for_number(question):
         except ValueError:
             print("Not a valid input!")
             continue
-        return input_
+        return abs(input_)
 
 
 def randomize_ships(map_size, starting_ships):
@@ -103,10 +104,9 @@ class TextClient():
         starting_ships should be a list of ships.
         Ships need a length and a type variables.
         '''
-        self.games = list()
+        self.game = None
         self.gameid = None
         self.playerid = None
-        self.map_size = (10, 10)
         self.starting_ships = starting_ships
         self.nickname = ""
         self.url = url
@@ -144,20 +144,24 @@ class TextClient():
                 else:
                     return
             else:
-                self.games = games
                 break
 
         print('Found games!')
-        for game in self.games:
-            print(game)
+        for number, game in enumerate(games):
+            print(number+1)
+            info = {k: i for k, i in game.items() if k[0] != '@'}
+            for key, value in info.items():
+                print('\t{0}: {1}'.format(key, value))
         print('Select game')
         while True:
             selection = ask_for_number('>')
-            if selection in games:
-                self.join_game(selection)
-                return
-            else:
-                print('Choose a game ID')
+            try:
+                game = games[selection-1]
+            except IndexError:
+                print('Choose a game from the list.')
+                continue
+            self.join_game(game)
+            return
 
     def _search_games(self):
         '''
@@ -165,26 +169,20 @@ class TextClient():
         Return a list of games.
         '''
         try:
-            response = requests.get('{0}/battleship/api/games/'.format(self.url))
+            games = search_games(self.url)
         except Exception as e:
             print('Error while searching for games:', e)
             return []
-        if response.status_code == 200:
-            games = [i.get('id') for i in response.json().get('items')]
-            return games
-        else:
-            print('Could not get games.')
-            print(response.text)
-            return []
+        return games
 
     def join_game(self, selection):
         '''
         Join the selected game.
         '''
         print('Select nickname, or leave empty for default nickname.')
-        self.nickname = input().strip()
+        self.nickname = input('>').strip()
         while True:
-            print('Trying to join game:', selection)
+            print('Trying to join...')
             self.joined = self._join(selection)
             if self.joined:
                 break
@@ -199,10 +197,10 @@ class TextClient():
                     return
 
         print('Joined the game!')
-        self.gameid = selection
+        self.game = selection
         self.play_game()
 
-    def _join(self, gameid):
+    def _join(self, game):
         '''
         Join the selected game with current nickname,
         and randomize the starting ships.
@@ -210,26 +208,36 @@ class TextClient():
         '''
         # Try joining as a new player
         try:
-            response = requests.post(
-                '{}/battleship/api/games/{}/players/'.format(self.url, gameid),
-                json={"nickname": self.nickname},
+            players = use_link('players', game.get('@controls'), self.url)
+            creation_response = use_link(
+                link_name='create-player',
+                controls=players.json().get('@controls'),
+                url=self.url,
+                kwargs={'json': {'nickname': self.nickname}}
             )
         except Exception as e:
             print('Error while sending Post request:', e)
             return False
-        if response.status_code != 201:
+        if creation_response.status_code != 201:
             print('Player creation error!')
-            print('status code', response.status_code)
-            print(response.text)
+            print('status code', creation_response.status_code)
+            print(creation_response.text)
             return False
 
         # Send randomized ships to the server
-        player_url = response.headers.get('Location')
-        ships = randomize_ships(self.map_size, self.starting_ships)
+        player_url = creation_response.headers.get('Location')
+        player = requests.get(player_url)
+        player_info = player.json()
+        map_size = (int(game.x_size), int(game.y_size))
+        ships = randomize_ships(map_size, self.starting_ships)
         try:
             for ship in ships:
-                url = '{0}ships/'.format(player_url)
-                response = requests.post(url, json=ship_as_dict(ship))
+                response = use_link(
+                    'place-ship',
+                    player_info.get('@controls'),
+                    self.url,
+                    kwargs={'json': ship_as_dict(ship)},
+                )
                 if response.status_code != 204:
                     print('Ship creation error!')
                     print('Status code', response.status_code)
@@ -239,8 +247,7 @@ class TextClient():
             print('Error while sending Post request:', e)
             return False
 
-        # Save player ID, ripped from player_url
-        self.playerid = re.search('\/(\d*)\/$', player_url).group(1)
+        self.playerid = player_info.get('id')
         return True
 
     def play_game(self):
@@ -250,43 +257,38 @@ class TextClient():
         and the shot is sent to server.
         Between shots, data is fetched from the server to display the map.
         '''
-        pass
+        shots = self._get_shots()
+        pprint(shots)
 
-    def _get_shots(self, gameid=None):
+    def _get_shots(self):
         '''
         Get shots of a game.
         '''
-        if gameid is None:
-            gameid = self.gameid
-        url = '{0}/battleship/api/games/{1}/shots/'.format(self.url, gameid)
+        if self.game is None:
+            print('No game in memory')
+            return False
         try:
-            response = requests.get(url)
+            response = use_link('shots', self.game.get('@controls'), self.url)
         except Exception as e:
             print('Error while getting shots:', e)
             return list()
-        if response.status_code != 200:
+        if response.status_code != (200):
             print('get shot error!')
             print('status code', response.status_code)
             print(response.text)
             return list()
         return response.json()
 
-    def _get_ships(self, gameid=None, playerid=None):
+    def _get_ships(self):
         '''
         Get ships of a game made by player.
         Default to the current ones in memory.
         '''
-        if gameid is None:
-            gameid = self.gameid
-        if playerid is None:
-            playerid = self.playerid
-        url = '{0}/battleship/api/games/{1}/players/{2}/ships/'.format(
-            self.url,
-            gameid,
-            playerid,
-        )
+        if self.game is None:
+            print('No game in memory')
+            return False
         try:
-            response = requests.get(url)
+            response = use_link('')
         except Exception as e:
             print('Error while getting ships:', e)
             return list()
