@@ -228,15 +228,17 @@ class TextClient():
         player_url = creation_response.headers.get('Location')
         player = requests.get(player_url)
         player_info = player.json()
-        map_size = (int(game.x_size), int(game.y_size))
+        map_size = (int(game.get('x_size')), int(game.get('y_size')))
         ships = randomize_ships(map_size, self.starting_ships)
         try:
             for ship in ships:
+                json_args = ship_as_dict(ship)
+                json_args['playerid'] = player_info.get('id')
                 response = use_link(
                     'place-ship',
                     player_info.get('@controls'),
                     self.url,
-                    kwargs={'json': ship_as_dict(ship)},
+                    kwargs={'json': json_args},
                 )
                 if response.status_code != 204:
                     print('Ship creation error!')
