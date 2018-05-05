@@ -621,11 +621,8 @@ class Ships(Resource):
 
         ships_db = g.con.get_ships(gameid)
 
-        if not ships_db:
-            abort(404, message="There are no ships in game with id %s" % gameid,
-                resource_type="Ships",
-                resource_url=request.path,
-                resource_id=gameid)
+        if ships_db is None:
+            ships_db = []
 
         envelope = MasonObject()
         envelope.add_namespace("battleship", LINK_RELATIONS_URL)
@@ -726,11 +723,8 @@ class Shots(Resource):
 
         shots_db = g.con.get_shots(gameid)
 
-        if not shots_db:
-            abort(404, message="There are no shots in game with id %s" % gameid,
-                resource_type="Shots",
-                resource_url=request.path,
-                resource_id=gameid)
+        if shots_db is None:
+            shots_db = []
 
         envelope = MasonObject()
         envelope.add_namespace("battleship", LINK_RELATIONS_URL)
