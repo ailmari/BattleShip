@@ -141,6 +141,7 @@ class GamesResourceTestCase(unittest.TestCase):
         self.assertEqual(controls["self"]["href"], url)
         self.assertIn("create-game", controls)
 
+    @print_test_info
     def test_get_games_items(self):
         """
         Checks that GET Games returns correct items

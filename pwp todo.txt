@@ -1,27 +1,28 @@
 TODO
 
 - client (Timo tehny)
-- REST API:in laivojen parempi asettaminen
-- REST API:in shottien parempi ampuninen (luo turnin, tarkistaa jotain yms)
-- REST API:in Link Relations kuntoon (sitte myös state diagram uusiks varmaan)
-- Resources Testeistä puuttuu Shots. Ja kaikki error koodit pitäis testata erikseen yms.
+DONE?- REST API:in laivojen parempi asettaminen
+DONE?- REST API:in shottien parempi ampuninen (luo turnin, tarkistaa jotain yms)
+DONE?- REST API:in Link Relations kuntoon (sitte myös state diagram uusiks varmaan)
+DONE- Resources Testeistä puuttuu Shots. Ja kaikki error koodit pitäis testata erikseen yms.
 
 
 Sit voi myös kattoo meeting notes, mitä kommentteja siellä oli. Tässä jotaki:
+
 DL3:
-- No state machine diagram
-- No sequence diagram
+DONE- No state machine diagram
+? - No sequence diagram
 DONE- Content type of post patch request is not mason but json 
 - Explain better the REST conformance
-- Remember to use schemas to define body of HTTP requests
+? - Remember to use schemas to define body of HTTP requests
+
 DL4:
-Tests:
-- Test each error code separately
-- Tests for Shots
-Smaller issues:
+DONE- Test each error code separately
+DONE- Tests for Shots
+
 DONE?- Proper use of profiles
 DONE?- Proper use of link relations
-Larger issues:
+
 DONE?- Links from game to players etc.
 DONE?- Schemas for POST, PUT etc.
 

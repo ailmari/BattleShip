@@ -33,7 +33,7 @@ PLAYER2_ID = 1
 
 SHIP1 = {
     'id': 0,
-    'player': 1,
+    'player': 0,
     'game': 0,
     'stern_x': 2,
     'stern_y': 3,
@@ -44,7 +44,7 @@ SHIP1 = {
 
 SHIP2 = {
     'id': 1,
-    'player': 1,
+    'player': 0,
     'game': 0,
     'stern_x': 3,
     'stern_y': 6,
@@ -80,14 +80,14 @@ PLAYER1_SHIPS = [SHIP1, SHIP2]
 PLAYER2_SHIPS = [SHIP3, SHIP4]
 
 NEW_SHIP = {
-    'id': 4,
-    'player': 0,
-    'game': 0,
-    'stern_x': 1,
-    'stern_y': 2,
-    'bow_x': 1,
-    'bow_y': 4,
-    'ship_type': 'default'
+    "id": 2,
+    "player": 0,
+    "game": 0,
+    "stern_x": 1,
+    "stern_y": 2,
+    "bow_x": 1,
+    "bow_y": 4,
+    "ship_type": "default"
 }
 
 NEW_SHIP_INCORRECT_GAME = {

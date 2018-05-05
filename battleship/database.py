@@ -611,7 +611,6 @@ class Connection(object):
         '''
         Creates a new ship into the database.
 
-        :param int shipid: The id of the ship.
         :param int player; The id of the player who owns the ship.
         :param int gameid: The id of the game ship belongs to.
         :param int stern_x: Ship stern's x-coordinate.
@@ -619,6 +618,7 @@ class Connection(object):
         :param int bow_x: Ship bow's x-coordinate.
         :param int bow_y: Ship bow's y-coordinate.
         :param string ship_type: String to determine custom type of ship.
+
         :return: True if ship was created, False otherwise.
         '''
 
@@ -627,7 +627,7 @@ class Connection(object):
         if ships is None:
             shipid = 0
         else:
-            shipid = len(ships) + 1
+            shipid = len(ships)
 
         #Create the SQL Statement
         stmnt = 'INSERT INTO ship (id, player, game, stern_x, stern_y, bow_x, bow_y, ship_type) \
