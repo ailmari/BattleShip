@@ -279,24 +279,42 @@ class TextClient():
         while True:
             # 1) Update Map
             hostile_shots = self._get_hostile_shots()
+            own_shots = self._get_own_shots()
             my_ships = self._get_my_ships()
             print('HOSTILE SHOTS')
             pprint(hostile_shots)
             print('MY SHIPS')
             pprint(my_ships)
 
-            # Conversions to fir draw_map
-            shots_xy = [(shot['x'], shot['y']) for shot in hostile_shots]
+            # Conversions for draw_map
+            hostile_shots_xy = [(shot['x'], shot['y']) for shot in hostile_shots]
+            own_shots_xy = [(shot['x'], shot['y']) for shot in own_shots]
             my_ships_as_ship = [as_ship(ship) for ship in my_ships]
+            print('OWN SHOTS')
             draw_map(
                 width=game.get('x_size'),
                 length=game.get('y_size'),
-                shots=shots_xy,
+                shots=own_shots_xy,
+                ships=[],
+            )
+            print()
+            print('PLAYER MAP')
+            draw_map(
+                width=game.get('x_size'),
+                length=game.get('y_size'),
+                shots=hostile_shots_xy,
                 ships=my_ships_as_ship,
             )
             # 2) Shoot
             x, y = self._ask_for_coordinate()
             print('Shooting at:', (x, y))
+            response = self._fire_shot(x, y)
+            if response.status_code == 403:
+                print('It is not your turn, wait for other players!')
+            elif response.status_code != 204:
+                print('Failure when trying to send coordinates')
+            else:
+                print('BOOM!')  # Possibly check hit/miss status here?
             # 3) Check end state
 
     def _get_shots(self):
@@ -320,6 +338,7 @@ class TextClient():
 
     def _get_hostile_shots(self):
         '''
+        Get the shots of opposing players in current game.
         '''
         response = self._get_shots()
         if not response:
@@ -330,6 +349,20 @@ class TextClient():
             if shot.get('player') != self.playerid:
                 hostile_shots.append(shot)
         return hostile_shots
+
+    def _get_own_shots(self):
+        '''
+        Get own shots in current game.
+        '''
+        response = self._get_shots()
+        if not response:
+            return False
+        shots = response.get('items')
+        own_shots = list()
+        for shot in shots:
+            if shot.get('player') == self.playerid:
+                own_shots.append(shot)
+        return own_shots
 
     def _get_ships(self):
         '''
@@ -397,6 +430,24 @@ class TextClient():
                 print('Letter must be A-{}!'.format(y_letter))
                 continue
             return int(x), y_number
+
+    def _fire_shot(self, x, y):
+        '''
+        Send firing command to the server.
+        '''
+        kwargs = {
+            'playerid': self.playerid,
+            'x': x,
+            'y': y,
+            'shot_type': 'single',
+        }
+        response = use_link(
+            link_name='fire-shot',
+            controls=self.player.get('@controls'),
+            url=self.url,
+            kwargs={'json': kwargs},
+        )
+        return response
 
 
 if __name__ == '__main__':
