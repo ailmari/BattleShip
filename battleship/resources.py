@@ -645,6 +645,7 @@ class Ships(Resource):
             )
             item.add_control("self", href=api.url_for(Ships, gameid=gameid))
             item.add_control("profile", href=BATTLESHIP_SHIP_PROFILE)
+            item.add_control("player", href=api.url_for(Player, gameid=gameid, playerid=ship["player"]))
             items.append(item)
 
         return Response(json.dumps(envelope), 200, mimetype=MASON+";"+BATTLESHIP_SHIP_PROFILE)
