@@ -5,7 +5,7 @@ It is designed to be extremely simple.
 
 from pprint import pprint
 import requests
-from logic import Ship, ship_squares
+from logic import Ship, ship_squares, draw_map
 from hyperlink_controls import enter_games, search_games, use_link
 from random import randint, choice
 from itertools import chain
@@ -27,6 +27,17 @@ def ship_as_dict(ship):
     correct_ship['bow_y'] = ship.bow[1]
     correct_ship['ship_type'] = ship.type
     return correct_ship
+
+
+def as_ship(ship_dict):
+    '''
+    Convert the server response into a Ship namedtuple.
+    '''
+    stern = (ship_dict['stern_x'], ship_dict['stern_y'])
+    bow = (ship_dict['bow_x'], ship_dict['bow_y'])
+    _type = ship_dict['ship_type']
+    ship = Ship(stern, bow, _type)
+    return ship
 
 
 def ask_for_number(question):
@@ -106,6 +117,7 @@ class TextClient():
         '''
         self.game = None
         self.gameid = None
+        self.player = None
         self.playerid = None
         self.starting_ships = starting_ships
         self.nickname = ""
@@ -175,7 +187,7 @@ class TextClient():
             return []
         return games
 
-    def join_game(self, selection):
+    def join_game(self, game):
         '''
         Join the selected game.
         '''
@@ -183,8 +195,8 @@ class TextClient():
         self.nickname = input('>').strip()
         while True:
             print('Trying to join...')
-            self.joined = self._join(selection)
-            if self.joined:
+            player = self._join(game)
+            if player:
                 break
             else:
                 print('Joining failed')
@@ -197,8 +209,9 @@ class TextClient():
                     return
 
         print('Joined the game!')
-        self.game = selection
-        self.play_game()
+        self.game = game
+        self.player = player
+        self.play_game(game, player)
 
     def _join(self, game):
         '''
@@ -226,17 +239,17 @@ class TextClient():
 
         # Send randomized ships to the server
         player_url = creation_response.headers.get('Location')
-        player = requests.get(player_url)
-        player_info = player.json()
+        response = requests.get(player_url)
+        player = response.json()
         map_size = (int(game.get('x_size')), int(game.get('y_size')))
         ships = randomize_ships(map_size, self.starting_ships)
         try:
             for ship in ships:
                 json_args = ship_as_dict(ship)
-                json_args['playerid'] = player_info.get('id')
+                json_args['playerid'] = player.get('id')
                 response = use_link(
                     'place-ship',
-                    player_info.get('@controls'),
+                    player.get('@controls'),
                     self.url,
                     kwargs={'json': json_args},
                 )
@@ -249,18 +262,42 @@ class TextClient():
             print('Error while sending Post request:', e)
             return False
 
-        self.playerid = player_info.get('id')
-        return True
+        self.playerid = player.get('id')
+        return player
 
-    def play_game(self):
+    def play_game(self, game, player):
         '''
         Handle the gameplay here.
         The players first choose where to shoot,
         and the shot is sent to server.
         Between shots, data is fetched from the server to display the map.
         '''
-        shots = self._get_shots()
-        pprint(shots)
+        print('PLAYER')
+        pprint(player)
+        print('GAME')
+        pprint(game)
+        while True:
+            # 1) Update Map
+            hostile_shots = self._get_hostile_shots()
+            my_ships = self._get_my_ships()
+            print('HOSTILE SHOTS')
+            pprint(hostile_shots)
+            print('MY SHIPS')
+            pprint(my_ships)
+
+            # Conversions to fir draw_map
+            shots_xy = [(shot['x'], shot['y']) for shot in hostile_shots]
+            my_ships_as_ship = [as_ship(ship) for ship in my_ships]
+            draw_map(
+                width=game.get('x_size'),
+                length=game.get('y_size'),
+                shots=shots_xy,
+                ships=my_ships_as_ship,
+            )
+            # 2) Shoot
+            x, y = self._ask_for_coordinate()
+            print('Shooting at:', (x, y))
+            # 3) Check end state
 
     def _get_shots(self):
         '''
@@ -281,6 +318,19 @@ class TextClient():
             return list()
         return response.json()
 
+    def _get_hostile_shots(self):
+        '''
+        '''
+        response = self._get_shots()
+        if not response:
+            return False
+        shots = response.get('items')
+        hostile_shots = list()
+        for shot in shots:
+            if shot.get('player') != self.playerid:
+                hostile_shots.append(shot)
+        return hostile_shots
+
     def _get_ships(self):
         '''
         Get ships of a game made by player.
@@ -290,7 +340,11 @@ class TextClient():
             print('No game in memory')
             return False
         try:
-            response = use_link('')
+            response = use_link(
+                link_name='ships',
+                controls=self.game.get('@controls'),
+                url=self.url,
+            )
         except Exception as e:
             print('Error while getting ships:', e)
             return list()
@@ -300,6 +354,49 @@ class TextClient():
             print(response.text)
             return list()
         return response.json()
+
+    def _get_my_ships(self):
+        '''
+        '''
+        ships_response = self._get_ships()
+        if not ships_response:
+            return False
+        ships = ships_response.get('items')
+        my_ships = list()
+        for ship in ships:
+            if ship.get('player') == self.playerid:
+                my_ships.append(ship)
+        return my_ships
+
+    def _ask_for_coordinate(self):
+        '''
+        Ask for a proper coordinates to shoot at.
+        Returns x and y coordinates as a (x, y) tuple.
+        '''
+        print('Fire at Letter-Number coordinates (e.g. e5)')
+        while True:
+            target = input('>').strip()
+            if len(target) < 2:
+                print('Improper coordinates, try again!')
+                continue
+            y, x = target[0], target[1:]  # letter is y, number is x
+            if not y.isalpha():
+                print('First character must be a letter!')
+                continue
+            if not x.isdigit():
+                print('Second character(s) must be a number!')
+                continue
+            map_x = int(self.game.get('x_size'))
+            if not 0 <= int(x) < map_x:
+                print('Number must be 0 <= x < {}!'.format(map_x))
+                continue
+            y_number = ord(y.capitalize()) - 65  # ord('A') starts at 65
+            map_y = int(self.game.get('y_size'))
+            if not 0 <= y_number < map_y:
+                y_letter = chr(64+map_y)
+                print('Letter must be A-{}!'.format(y_letter))
+                continue
+            return int(x), y_number
 
 
 if __name__ == '__main__':
