@@ -1,5 +1,17 @@
 # BattleShip
 
+## How to run
+
+To start the server:
+```
+py -m main
+```
+
+To run the client:
+```
+py clients/textclient.py
+```
+
 ## Description
 
 Battleships Web API offers an interface to create varied versions of battleships games. The API provides core components for a battleship game: placement of ships, entry for players, firing of shots and evaluation of the game state. In addition, the API keeps logs and saves the history of all played games.
