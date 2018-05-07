@@ -49,15 +49,17 @@ def all_ships_sunk(ships, shots):
         return True
 
 
-def draw_map(width, length, shots, ships):
+def draw_map(width, length, shots, ships, drawships=True):
     print(" " + "".join([str(x) for x in range(width)]))
     for y in range(length):
         line = ""
         for x in range(width):
-            square = "h" if (x, y) in shots else "."
+            square = "o" if (x, y) in shots else "."
             for ship in ships:
-                if ship_in_xy(ship, x, y):
-                    square = 'H' if (x, y) in shots else ship.type
+                if ship_in_xy(ship, x, y) and drawships:
+                    square = 'X' if (x, y) in shots else ship.type[0]
+                elif ship_in_xy(ship, x, y) and not drawships:
+                    square = 'X' if (x, y) in shots else "."
             line += square
         print("{0}{1}".format(chr(ord("A")+y), line))
 

@@ -299,14 +299,16 @@ class TextClient():
             # 1) Update Map
             hostile_shots = self._get_hostile_shots()
             own_shots = self._get_own_shots()
+            hostile_ships = self._get_hostile_ships()
             my_ships = self._get_my_ships()
-            print('HOSTILE SHOTS')
-            pprint(hostile_shots)
-            print('MY SHIPS')
-            pprint(my_ships)
+            #print('HOSTILE SHOTS')
+            #pprint(hostile_shots)
+            #print('MY SHIPS')
+            #pprint(my_ships)
 
             # Conversions for draw_map
             hostile_shots_xy = shots_xy(hostile_shots)
+            hostile_ships_as_ship = [as_ship(ship) for ship in hostile_ships]
             own_shots_xy = shots_xy(own_shots)
             my_ships_as_ship = [as_ship(ship) for ship in my_ships]
             print('OWN SHOTS')
@@ -314,7 +316,8 @@ class TextClient():
                 width=game.get('x_size'),
                 length=game.get('y_size'),
                 shots=own_shots_xy,
-                ships=[],
+                ships=hostile_ships_as_ship,
+                drawships=False,
             )
             print()
             print('PLAYER MAP')
@@ -323,6 +326,7 @@ class TextClient():
                 length=game.get('y_size'),
                 shots=hostile_shots_xy,
                 ships=my_ships_as_ship,
+                drawships=True,
             )
             # 2) Shoot
             x, y = self._ask_for_coordinate()
@@ -340,7 +344,6 @@ class TextClient():
             print('Winner:', winner)
             if winner:
                 response = self._end_game()
-                print('Winner was:', winner)
                 break
 
     def _get_shots(self):
@@ -427,6 +430,19 @@ class TextClient():
                 my_ships.append(ship)
         return my_ships
 
+    def _get_hostile_ships(self):
+        '''
+        '''
+        ships_response = self._get_ships()
+        if not ships_response:
+            return False
+        ships = ships_response.get('items')
+        hostile_ships = list()
+        for ship in ships:
+            if ship.get('player') != self.playerid:
+                hostile_ships.append(ship)
+        return hostile_ships
+
     def _ask_for_coordinate(self):
         '''
         Ask for a proper coordinates to shoot at.
@@ -489,8 +505,11 @@ class TextClient():
         ships = self._get_ships().get('items')
         shots = self._get_shots().get('items')
         destroyed_players = list()
+        id_to_nickname = {}
         for player in players:
             _id = player.get('id')
+            _nickname = player.get('nickname')
+            id_to_nickname[_id] = _nickname
             own_ships = [s for s in ships if s['player'] == _id]
             enemy_shots = [s for s in shots if s['player'] != _id]
             enemy_shots_xy = shots_xy(enemy_shots)
@@ -501,7 +520,7 @@ class TextClient():
         ids = [player.get('id') for player in players]
         alive = set(ids) - set(destroyed_players)
         if len(alive) == 1:
-            return list(alive)[0]
+            return id_to_nickname[list(alive)[0]]
         elif len(alive) > 1:
             return False
         else:
@@ -523,7 +542,12 @@ class TextClient():
 
 if __name__ == '__main__':
     # Just quick test ships
-    starting_ships = [StartingShip(1, "a")]
+    starting_ships = [
+        StartingShip(4, "frigate"),
+        StartingShip(3, "submarine"),
+        StartingShip(3, "submarine"),
+        StartingShip(3, "submarine"),
+    ]
     URL = 'http://localhost:5000'
     client = TextClient(starting_ships, URL)
     client.main()
