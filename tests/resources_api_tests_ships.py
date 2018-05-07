@@ -140,11 +140,22 @@ class ShipsResourceTestCase(unittest.TestCase):
         """
         Checks that POST Ships returns correct status code
         """
-        resp = self.client.post(flask.url_for("ships", gameid="0"),
+        resp = self.client.post(flask.url_for("ships", gameid="1"),
             headers={"Content-Type": JSON,
                 "Accept": MASONJSON},
             data=json.dumps(self.place_ships_request))
         self.assertEqual(resp.status_code, 204)
+
+    @print_test_info
+    def test_post_ships_game_ended(self):
+        """
+        Checks that POST Ships returns correct error if game has ended
+        """
+        resp = self.client.post(flask.url_for("ships", gameid="0"),
+            headers={"Content-Type": JSON,
+                "Accept": MASONJSON},
+            data=json.dumps(self.place_ships_request))
+        self.assertEqual(resp.status_code, 400)
 
 if __name__ == "__main__":
     print("Starting resources ships tests...")

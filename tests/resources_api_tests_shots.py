@@ -42,6 +42,20 @@ class ShotsResourceTestCase(unittest.TestCase):
         "shot_type": "nuclear",
     }
 
+    shot_request_game_1a = {
+        "playerid": 1,
+        "x": 2,
+        "y": 5,
+        "shot_type": "nuclear",
+    }
+
+    shot_request_game_1b = {
+        "playerid": 0,
+        "x": 2,
+        "y": 5,
+        "shot_type": "nuclear",
+    }
+
     shot_request_not_my_turn = {
         "playerid": 0,
         "x": 2,
@@ -155,10 +169,10 @@ class ShotsResourceTestCase(unittest.TestCase):
         """
         Checks that POST Ships returns correct status code
         """
-        resp = self.client.post(flask.url_for("shots", gameid="0"),
+        resp = self.client.post(flask.url_for("shots", gameid="1"),
             headers={"Content-Type": JSON,
                 "Accept": MASONJSON},
-            data=json.dumps(self.shot_request))
+            data=json.dumps(self.shot_request_game_1a))
         self.assertEqual(resp.status_code, 204)
 
     @print_test_info
@@ -166,11 +180,22 @@ class ShotsResourceTestCase(unittest.TestCase):
         """
         Checks that POST Ships returns correct status, if player tries to fire twice on same turn.
         """
+        resp = self.client.post(flask.url_for("shots", gameid="1"),
+            headers={"Content-Type": JSON,
+                "Accept": MASONJSON},
+            data=json.dumps(self.shot_request_game_1b))
+        self.assertEqual(resp.status_code, 403)
+
+    @print_test_info
+    def test_post_shots_game_ended(self):
+        """
+        Checks that POST Ships returns correct status, if player tries to fire to ended game
+        """
         resp = self.client.post(flask.url_for("shots", gameid="0"),
             headers={"Content-Type": JSON,
                 "Accept": MASONJSON},
             data=json.dumps(self.shot_request_not_my_turn))
-        self.assertEqual(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 400)
 
 if __name__ == "__main__":
     print("Starting resources ships tests...")
