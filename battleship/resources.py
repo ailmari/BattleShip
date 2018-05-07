@@ -676,6 +676,7 @@ class Ships(Resource):
         RESPONSE STATUS CODE
             * Return status code 204 if ship was created succesfully.
             * Return status code 415 if the request is not JSON or the request format is incorrect.
+            * Return status code 402 if the game has ended.
             * Return status code 400 if parameters are missing.
             * Return status code 500 if the ship could not be created in the database.
         '''
@@ -688,6 +689,9 @@ class Ships(Resource):
                 resource_type="Game",
                 resource_url=request.path,
                 resource_id=gameid)
+
+        if game_db["end_time"] != None:
+            abort(402, message="Cannot place ship into game that has ended!")
 
         request_body = request.get_json(force=True)
         if not request_body:
@@ -775,6 +779,7 @@ class Shots(Resource):
             * Return status code 415 if the request is not JSON or the request format is incorrect.
             * Return status code 404 if the game or player were not found in the database.
             * Return status code 403 if not users turn
+            * Return status code 402 if game has ended
             * Return status code 400 if parameters are missing.
             * Return status code 500 if the shot or turn could not be created in the database.
         '''
@@ -789,6 +794,9 @@ class Shots(Resource):
                 resource_type="Game",
                 resource_url=request.path,
                 resource_id=gameid)
+
+        if game_db["end_time"] != None:
+            abort(402, message="Cannot fire shot to game that has ended!")
 
         request_body = request.get_json(force=True)
         if not request_body:
