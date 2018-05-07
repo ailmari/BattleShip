@@ -138,12 +138,31 @@ class TextClient():
             if selection == 1:
                 self.find_game()
             elif selection == 2:
-                print('Create game WIP')
+                self.create_game()
             elif selection == 3:
                 print('bye bye')
                 return
             else:
                 print('Invalid input:', selection)
+
+    def create_game(self):
+        print('Creating game...')
+        games = enter_games(self.url)
+        kwargs = {
+            'y_size': 10,
+            'x_size': 10,
+            'turn_length': 100,
+        }
+        response = use_link(
+            link_name='create-game',
+            controls=games.json().get('@controls'),
+            url=URL,
+            kwargs={'json': kwargs}
+        )
+        new_game_url = response.headers.get('Location')
+        new_game = requests.get(new_game_url)
+        print('Game created!')
+        self.join_game(new_game.json())
 
     def find_game(self):
         print('\nFIND GAME')
