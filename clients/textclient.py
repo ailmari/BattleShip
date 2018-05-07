@@ -5,7 +5,7 @@ It is designed to be extremely simple.
 
 from pprint import pprint
 import requests
-from logic import Ship, ship_squares, draw_map
+from logic import Ship, ship_squares, draw_map, all_ships_sunk
 from hyperlink_controls import enter_games, search_games, use_link
 from random import randint, choice
 from itertools import chain
@@ -38,6 +38,10 @@ def as_ship(ship_dict):
     _type = ship_dict['ship_type']
     ship = Ship(stern, bow, _type)
     return ship
+
+
+def shots_xy(shots):
+    return [(shot['x'], shot['y']) for shot in shots]
 
 
 def ask_for_number(question):
@@ -129,7 +133,7 @@ class TextClient():
             print('\nMAIN MENU')
             print('1) Find game')
             print('2) Create game')
-            print('3)exit')
+            print('3) exit')
             selection = ask_for_number('>')
             if selection == 1:
                 self.find_game()
@@ -272,10 +276,6 @@ class TextClient():
         and the shot is sent to server.
         Between shots, data is fetched from the server to display the map.
         '''
-        print('PLAYER')
-        pprint(player)
-        print('GAME')
-        pprint(game)
         while True:
             # 1) Update Map
             hostile_shots = self._get_hostile_shots()
@@ -287,8 +287,8 @@ class TextClient():
             pprint(my_ships)
 
             # Conversions for draw_map
-            hostile_shots_xy = [(shot['x'], shot['y']) for shot in hostile_shots]
-            own_shots_xy = [(shot['x'], shot['y']) for shot in own_shots]
+            hostile_shots_xy = shots_xy(hostile_shots)
+            own_shots_xy = shots_xy(own_shots)
             my_ships_as_ship = [as_ship(ship) for ship in my_ships]
             print('OWN SHOTS')
             draw_map(
@@ -316,6 +316,13 @@ class TextClient():
             else:
                 print('BOOM!')  # Possibly check hit/miss status here?
             # 3) Check end state
+            print('checking end status...')
+            winner = self._check_end_status()
+            print('Winner:', winner)
+            if winner:
+                response = self._end_game()
+                print('Winner was:', winner)
+                break
 
     def _get_shots(self):
         '''
@@ -449,10 +456,55 @@ class TextClient():
         )
         return response
 
+    def _check_end_status(self):
+        '''
+        Check wether a single player is still standing.
+        Return winner's ID if end status has been reached, else False.
+        '''
+        players_response = use_link(
+            link_name='players',
+            controls=self.game.get('@controls'),
+            url=self.url,
+        )
+        players = players_response.json().get('items')
+        ships = self._get_ships().get('items')
+        shots = self._get_shots().get('items')
+        destroyed_players = list()
+        for player in players:
+            _id = player.get('id')
+            own_ships = [s for s in ships if s['player'] == _id]
+            enemy_shots = [s for s in shots if s['player'] != _id]
+            enemy_shots_xy = shots_xy(enemy_shots)
+            as_ships = [as_ship(ship) for ship in own_ships]
+            sunk = all_ships_sunk(as_ships, enemy_shots_xy)
+            if sunk:
+                destroyed_players.append(_id)
+        ids = [player.get('id') for player in players]
+        alive = set(ids) - set(destroyed_players)
+        if len(alive) == 1:
+            return list(alive)[0]
+        elif len(alive) > 1:
+            return False
+        else:
+            print('Stalemate?')
+            print(alive)
+            return False
+
+    def _end_game(self):
+        '''
+        End current game.
+        '''
+        response = use_link(
+            link_name='end-game',
+            controls=self.game.get('@controls'),
+            url=self.url,
+            )
+        return response
+
 
 if __name__ == '__main__':
     # Just quick test ships
-    starting_ships = [StartingShip(5, "a"), StartingShip(7, "b")]
+    starting_ships = [StartingShip(1, "a")]
     URL = 'http://localhost:5000'
     client = TextClient(starting_ships, URL)
     client.main()
