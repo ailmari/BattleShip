@@ -22,7 +22,10 @@ There are many previous implementations for battleships games, but creating a We
 
 ## Depencies
 
-There are no other than standard Python modules used. Project have been tested to work with Python 3.5 and Python 3.6
+Python libraries:
+-requests
+
+Project have been tested to work with Python 3.5 and Python 3.6
 
 ## Setup and populate database
 
