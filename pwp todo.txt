@@ -1,9 +1,9 @@
 TODO
 
 - client (Timo tehny)
-DONE?- REST API:in laivojen parempi asettaminen
-DONE?- REST API:in shottien parempi ampuninen (luo turnin, tarkistaa jotain yms)
-DONE?- REST API:in Link Relations kuntoon (sitte myös state diagram uusiks varmaan)
+DONE- REST API:in laivojen parempi asettaminen
+DONE- REST API:in shottien parempi ampuninen (luo turnin, tarkistaa jotain yms)
+DONE- REST API:in Link Relations kuntoon (sitte myös state diagram uusiks varmaan)
 DONE- Resources Testeistä puuttuu Shots. Ja kaikki error koodit pitäis testata erikseen yms.
 
 
@@ -11,29 +11,27 @@ Sit voi myös kattoo meeting notes, mitä kommentteja siellä oli. Tässä jotaki:
 
 DL3:
 DONE- No state machine diagram
-? - No sequence diagram
+DONE - No sequence diagram
 DONE- Content type of post patch request is not mason but json 
 DONE- Explain better the REST conformance
-? - Remember to use schemas to define body of HTTP requests
+DONE? - Remember to use schemas to define body of HTTP requests (@controlseissa esim. löytyy fire-shotille schema: {"x": "x coordinate"... jne) ?
 
 DL4:
 DONE- Test each error code separately
 DONE- Tests for Shots
 
 DONE?- Proper use of profiles
-DONE?- Proper use of link relations
+DONE- Proper use of link relations
 
-DONE?- Links from game to players etc.
+DONE- Links from game to players etc.
 DONE?- Schemas for POST, PUT etc.
 
 
 Nämä Ivan laitto sähköpostissa:
-"
 In Apiary: 
 DONE?-	Add the link relations that you have used in the LINK relations section.
 ?- Add the format of the PATCH request (for instance end game) <- But we don't have body for this request? API creates the end time.
 DONE-	Use POST to place ships. 
 DONE-	What is Shotid when you fire a shot? Should not the player send and HTTP POST request to http://polls.apiblueprint.org/battleships/api/games/gameid/shots/ (without shotid). The shotid is returned by the server in the Location header when the shot is created.
 NAH?-	You might want to add a GET for this shot.
-"
 
