@@ -5,7 +5,7 @@ It is designed to be extremely simple.
 
 from pprint import pprint
 import requests
-from logic import Ship, ship_squares, draw_map
+from logic import Ship, ship_squares, draw_map, all_ships_sunk
 from hyperlink_controls import enter_games, search_games, use_link
 from random import randint, choice
 from itertools import chain
@@ -38,6 +38,10 @@ def as_ship(ship_dict):
     _type = ship_dict['ship_type']
     ship = Ship(stern, bow, _type)
     return ship
+
+
+def shots_xy(shots):
+    return [(shot['x'], shot['y']) for shot in shots]
 
 
 def ask_for_number(question):
@@ -129,17 +133,36 @@ class TextClient():
             print('\nMAIN MENU')
             print('1) Find game')
             print('2) Create game')
-            print('3)exit')
+            print('3) exit')
             selection = ask_for_number('>')
             if selection == 1:
                 self.find_game()
             elif selection == 2:
-                print('Create game WIP')
+                self.create_game()
             elif selection == 3:
                 print('bye bye')
                 return
             else:
                 print('Invalid input:', selection)
+
+    def create_game(self):
+        print('Creating game...')
+        games = enter_games(self.url)
+        kwargs = {
+            'y_size': 10,
+            'x_size': 10,
+            'turn_length': 100,
+        }
+        response = use_link(
+            link_name='create-game',
+            controls=games.json().get('@controls'),
+            url=URL,
+            kwargs={'json': kwargs}
+        )
+        new_game_url = response.headers.get('Location')
+        new_game = requests.get(new_game_url)
+        print('Game created!')
+        self.join_game(new_game.json())
 
     def find_game(self):
         print('\nFIND GAME')
@@ -272,32 +295,53 @@ class TextClient():
         and the shot is sent to server.
         Between shots, data is fetched from the server to display the map.
         '''
-        print('PLAYER')
-        pprint(player)
-        print('GAME')
-        pprint(game)
         while True:
             # 1) Update Map
             hostile_shots = self._get_hostile_shots()
+            own_shots = self._get_own_shots()
             my_ships = self._get_my_ships()
             print('HOSTILE SHOTS')
             pprint(hostile_shots)
             print('MY SHIPS')
             pprint(my_ships)
 
-            # Conversions to fir draw_map
-            shots_xy = [(shot['x'], shot['y']) for shot in hostile_shots]
+            # Conversions for draw_map
+            hostile_shots_xy = shots_xy(hostile_shots)
+            own_shots_xy = shots_xy(own_shots)
             my_ships_as_ship = [as_ship(ship) for ship in my_ships]
+            print('OWN SHOTS')
             draw_map(
                 width=game.get('x_size'),
                 length=game.get('y_size'),
-                shots=shots_xy,
+                shots=own_shots_xy,
+                ships=[],
+            )
+            print()
+            print('PLAYER MAP')
+            draw_map(
+                width=game.get('x_size'),
+                length=game.get('y_size'),
+                shots=hostile_shots_xy,
                 ships=my_ships_as_ship,
             )
             # 2) Shoot
             x, y = self._ask_for_coordinate()
             print('Shooting at:', (x, y))
+            response = self._fire_shot(x, y)
+            if response.status_code == 403:
+                print('It is not your turn, wait for other players!')
+            elif response.status_code != 204:
+                print('Failure when trying to send coordinates')
+            else:
+                print('BOOM!')  # Possibly check hit/miss status here?
             # 3) Check end state
+            print('checking end status...')
+            winner = self._check_end_status()
+            print('Winner:', winner)
+            if winner:
+                response = self._end_game()
+                print('Winner was:', winner)
+                break
 
     def _get_shots(self):
         '''
@@ -320,6 +364,7 @@ class TextClient():
 
     def _get_hostile_shots(self):
         '''
+        Get the shots of opposing players in current game.
         '''
         response = self._get_shots()
         if not response:
@@ -330,6 +375,20 @@ class TextClient():
             if shot.get('player') != self.playerid:
                 hostile_shots.append(shot)
         return hostile_shots
+
+    def _get_own_shots(self):
+        '''
+        Get own shots in current game.
+        '''
+        response = self._get_shots()
+        if not response:
+            return False
+        shots = response.get('items')
+        own_shots = list()
+        for shot in shots:
+            if shot.get('player') == self.playerid:
+                own_shots.append(shot)
+        return own_shots
 
     def _get_ships(self):
         '''
@@ -398,10 +457,73 @@ class TextClient():
                 continue
             return int(x), y_number
 
+    def _fire_shot(self, x, y):
+        '''
+        Send firing command to the server.
+        '''
+        kwargs = {
+            'playerid': self.playerid,
+            'x': x,
+            'y': y,
+            'shot_type': 'single',
+        }
+        response = use_link(
+            link_name='fire-shot',
+            controls=self.player.get('@controls'),
+            url=self.url,
+            kwargs={'json': kwargs},
+        )
+        return response
+
+    def _check_end_status(self):
+        '''
+        Check wether a single player is still standing.
+        Return winner's ID if end status has been reached, else False.
+        '''
+        players_response = use_link(
+            link_name='players',
+            controls=self.game.get('@controls'),
+            url=self.url,
+        )
+        players = players_response.json().get('items')
+        ships = self._get_ships().get('items')
+        shots = self._get_shots().get('items')
+        destroyed_players = list()
+        for player in players:
+            _id = player.get('id')
+            own_ships = [s for s in ships if s['player'] == _id]
+            enemy_shots = [s for s in shots if s['player'] != _id]
+            enemy_shots_xy = shots_xy(enemy_shots)
+            as_ships = [as_ship(ship) for ship in own_ships]
+            sunk = all_ships_sunk(as_ships, enemy_shots_xy)
+            if sunk:
+                destroyed_players.append(_id)
+        ids = [player.get('id') for player in players]
+        alive = set(ids) - set(destroyed_players)
+        if len(alive) == 1:
+            return list(alive)[0]
+        elif len(alive) > 1:
+            return False
+        else:
+            print('Stalemate?')
+            print(alive)
+            return False
+
+    def _end_game(self):
+        '''
+        End current game.
+        '''
+        response = use_link(
+            link_name='end-game',
+            controls=self.game.get('@controls'),
+            url=self.url,
+            )
+        return response
+
 
 if __name__ == '__main__':
     # Just quick test ships
-    starting_ships = [StartingShip(5, "a"), StartingShip(7, "b")]
+    starting_ships = [StartingShip(1, "a")]
     URL = 'http://localhost:5000'
     client = TextClient(starting_ships, URL)
     client.main()
