@@ -5,6 +5,7 @@ INSERT INTO "game" VALUES(2,"2018-2-23 12:40:36.877952", null, 12, 12, 10);
 INSERT INTO "player" VALUES(0, "Fu1L_s41V0_n05CoP3_720", 0);
 INSERT INTO "player" VALUES(1, "Captain Haddock", 0);
 INSERT INTO "player" VALUES(2, "SUBMARINEGOD", 0);
+INSERT INTO "player" VALUES(0, "Delete me!", 1);
 
 INSERT INTO "ship" VALUES(0, 0, 0, 2, 3, 2, 6, "frigate");
 INSERT INTO "ship" VALUES(1, 0, 0, 3, 6, 6, 6, "submarine");

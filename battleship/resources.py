@@ -590,10 +590,20 @@ class Player(Resource):
             * Return status code 204 if player was deleted succesfully.
             * Return status code 404 if the player or the game were not found in the database.
         '''
+        game_db = g.con.get_game(gameid)
+        if not game_db:
+            abort(404, message="There is no game with id %s" % gameid,
+                resource_type="Game",
+                resource_url=request.path,
+                resource_id=gameid)
+
+        if game_db["end_time"] != None:
+            abort(400, message="Cannot delete player from game that has ended!")
+
         if g.con.delete_player(playerid, gameid):
             return Response(status=204)
         else:
-            return create_error_response(404, "Unknown player or game")
+            return create_error_response(404, "Unknown player")
 
 class Ships(Resource):
     '''

@@ -13,7 +13,7 @@ DL3:
 DONE- No state machine diagram
 ? - No sequence diagram
 DONE- Content type of post patch request is not mason but json 
-- Explain better the REST conformance
+DONE- Explain better the REST conformance
 ? - Remember to use schemas to define body of HTTP requests
 
 DL4:

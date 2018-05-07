@@ -190,11 +190,20 @@ class PlayersResourceTestCase(unittest.TestCase):
         """
         Checks that DELETE Player works
         """
-        url = "/battleship/api/games/0/players/0/"
+        url = "/battleship/api/games/1/players/0/"
         resp = self.client.delete(url)
         self.assertEqual(resp.status_code, 204)
         resp2 = self.client.get(url)
         self.assertEqual(resp2.status_code, 404)
+
+    @print_test_info
+    def test_delete_player_game_ended(self):
+        """
+        Checks that DELETE Player does not delete player from game which has ended
+        """
+        url = "/battleship/api/games/0/players/0/"
+        resp = self.client.delete(url)
+        self.assertEqual(resp.status_code, 400)
 
 if __name__ == "__main__":
     print("Starting resources players tests...")
