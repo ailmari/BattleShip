@@ -41,10 +41,16 @@ def as_ship(ship_dict):
 
 
 def shots_xy(shots):
+    '''
+    formats list of shots into tuples of (x, y)-coordinates
+    '''
     return [(shot['x'], shot['y']) for shot in shots]
 
 
 def ask_for_number(question):
+    '''
+    Asks number input from the user.
+    '''
     while True:
         input_ = input(question)
         try:
@@ -133,19 +139,26 @@ class TextClient():
             print('\nMAIN MENU')
             print('1) Find game')
             print('2) Create game')
-            print('3) exit')
+            print('3) Delete game')
+            print('4) Exit')
             selection = ask_for_number('>')
             if selection == 1:
                 self.find_game()
             elif selection == 2:
                 self.create_game()
             elif selection == 3:
-                print('bye bye')
+                self.delete_game()
+            elif selection == 4:
+                print('Bye bye!')
                 return
             else:
                 print('Invalid input:', selection)
 
     def create_game(self):
+        '''
+        Creates a new game.
+        Player creating the game joins it automatically.
+        '''
         print('Creating game...')
         games = enter_games(self.url)
         kwargs = {
@@ -164,7 +177,11 @@ class TextClient():
         print('Game created!')
         self.join_game(new_game.json())
 
-    def find_game(self):
+    def find_game(self, type='join'):
+        '''
+        Lists games that have not ended.
+        User picks one to join.
+        '''
         print('\nFIND GAME')
         while True:
             print('Searching...')
@@ -187,7 +204,7 @@ class TextClient():
             info = {k: i for k, i in game.items() if k[0] != '@'}
             for key, value in info.items():
                 print('\t{0}: {1}'.format(key, value))
-        print('Select game')
+        print('Select game to join')
         while True:
             selection = ask_for_number('>')
             try:
@@ -197,6 +214,63 @@ class TextClient():
                 continue
             self.join_game(game)
             return
+
+    def delete_game(self):
+        '''
+        Lists games that have not ended.
+        User picks one to delete.
+        '''
+        print('\nDELETE GAME')
+        while True:
+            print('Searching...')
+            games = self._search_games()
+            if not games:
+                print('No games found')
+                print('1) Retry')
+                print('2) Quit')
+                selection = ask_for_number('>')
+                if selection == 1:
+                    continue
+                else:
+                    return
+            else:
+                break
+
+        print('Found games!')
+        for number, game in enumerate(games):
+            print(number+1)
+            info = {k: i for k, i in game.items() if k[0] != '@'}
+            for key, value in info.items():
+                print('\t{0}: {1}'.format(key, value))
+        print('Select game to delete')
+        while True:
+            selection = ask_for_number('>')
+            try:
+                game = games[selection-1]
+            except IndexError:
+                print('Choose a game from the list.')
+                continue
+            self._delete(game)
+            return
+
+    def _delete(self, game):
+        '''
+        Delete the selected game.
+        Return True if success, else False.
+        '''
+        try:
+            delete_response = use_link('delete-game', game.get('@controls'), self.url)
+        except Exception as e:
+            print('Error while sending Delete request:', e)
+            return False
+        if delete_response.status_code != 204:
+            print('Game deletion error!')
+            print('status code', delete_response.status_code)
+            print(delete_response.text)
+            return False
+        else:
+            print('Game deleted')
+            return True
 
     def _search_games(self):
         '''
@@ -419,6 +493,7 @@ class TextClient():
 
     def _get_my_ships(self):
         '''
+        Returns list of ships owned by the player
         '''
         ships_response = self._get_ships()
         if not ships_response:
@@ -432,6 +507,7 @@ class TextClient():
 
     def _get_hostile_ships(self):
         '''
+        Returns list of ships that are not owned by the player.
         '''
         ships_response = self._get_ships()
         if not ships_response:
@@ -548,6 +624,6 @@ if __name__ == '__main__':
         StartingShip(3, "submarine"),
         StartingShip(3, "submarine"),
     ]
-    URL = 'http://localhost:5000'
+    URL = 'http://192.168.0.101:5000'
     client = TextClient(starting_ships, URL)
     client.main()

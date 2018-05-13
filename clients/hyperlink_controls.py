@@ -12,6 +12,9 @@ def enter_games(url):
 
 
 def search_games(url):
+    '''
+    Requests info for every game in the games list.
+    '''
     response = enter_games(url)
     if response.status_code != 200:
         return
@@ -24,6 +27,9 @@ def search_games(url):
 
 
 def use_link(link_name, controls, url, kwargs={}):
+    '''
+    Makes a request to a link in a resource.
+    '''
     link = controls.get(link_name)
     if link is None:
         raise ValueError('Could not find link: "', link, '" from controls!')
